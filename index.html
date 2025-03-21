@@ -17,12 +17,10 @@
       align-items: center;
       justify-content: center;
     }
-    /* Spelbord meer naar beneden */
     #gameCanvas {
       display: block;
-      margin: auto;
       position: absolute;
-      top: 60%;
+      top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
     }
@@ -228,18 +226,8 @@
   </style>
 </head>
 <body>
-  <div class="header">
-    <button class="back-btn">&#8592;</button>
-    <div class="title">Game Titel</div>
-  </div>
-  <canvas id="gameCanvas"></canvas>
   <!-- Dynamische content wordt via JavaScript opgebouwd -->
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      const canvas = document.getElementById("gameCanvas");
-      canvas.width = window.innerWidth * 0.9;
-      canvas.height = window.innerHeight * 0.9;
-    });
     /* ============================
        MobileBoard class (spel-logica)
        ============================ */
@@ -470,9 +458,10 @@
         this.cell_size = Math.min(window.innerWidth, window.innerHeight - 100) / 10.5;
         this.x_compress = 1;
         this.y_compress = 1;
-        // Offset voor het spelbord, nu verder naar beneden (150px)
-        this.board_offset_x = window.innerWidth * 0.5;
-        this.board_offset_y = 150;
+        this.cell_size = Math.min(window.innerWidth, window.innerHeight) / 11;
+        this.cell_size = Math.min(window.innerWidth, window.innerHeight) / 11;
+        this.board_offset_x = this.canvas.width / 2;
+        this.board_offset_y = this.canvas.height / 2 - (16 * this.cell_size)/2; // Verticale centering
         this.colors = {
           red: "#FF5555",
           red_light: "#FF9999",
@@ -609,8 +598,8 @@
       onTouch(event) {
         if (this.board.game_ended) return;
         let rect = this.canvas.getBoundingClientRect();
-        let x = event.clientX - this.board_offset_x;
-        let y = event.clientY - this.board_offset_y;
+        let x = event.clientX - rect.left - this.board_offset_x;
+        let y = event.clientY - rect.top - this.board_offset_y;
         let x_iso = x / (this.cell_size * this.x_compress);
         let y_iso = y / (this.cell_size * this.y_compress);
         let orig_row = Math.round((y_iso + x_iso) / 2);

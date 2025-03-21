@@ -12,13 +12,22 @@
       font-family: Arial, sans-serif;
       color: white;
       height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
-    /* Canvas en dynamische elementen */
-    #gameCanvas, #reviewCanvas {
+    /* Spelbord meer naar beneden */
+    #gameCanvas {
       display: block;
+      margin: auto;
+      position: absolute;
+      top: 60%;
+      left: 50%;
+      transform: translate(-50%, -50%);
     }
     /* Hoofdmenu, Games- en Importpagina */
-    #menu, #gamesPage, #importPage {
+    #menu, #importPage {
       width: 100vw;
       height: 100vh;
       background-color: #2D2D2D;
@@ -30,7 +39,7 @@
       box-sizing: border-box;
       text-align: center;
     }
-    /* Header styling voor game en review */
+    /* Header styling voor game */
     .header {
       position: fixed;
       top: 0;
@@ -40,13 +49,9 @@
       background-color: transparent;
       display: flex;
       align-items: center;
-      justify-content: space-between;
       padding: 0 20px;
       box-sizing: border-box;
       z-index: 12;
-    }
-    .header .title {
-      font-size: 40px;
     }
     .header .back-btn {
       font-size: 40px;
@@ -54,6 +59,15 @@
       border: none;
       color: white;
       cursor: pointer;
+      position: absolute;
+      left: 25%;
+      transform: translateX(-50%);
+    }
+    .header .title {
+      font-size: 40px;
+      position: absolute;
+      left: 75%;
+      transform: translateX(-50%);
     }
     /* Titels */
     h1 {
@@ -113,11 +127,12 @@
       width: 90%;
       max-width: 500px;
     }
-    /* Terug-knoppen (indien buiten header) */
+    /* Algemene back-knoppen styling */
     .menu-back-btn, .game-back-btn {
       position: fixed;
       top: 20px;
-      left: 20px;
+      left: 25%;
+      transform: translateX(-50%);
       background-color: #3D3D3D;
       color: white;
       font-size: 40px;
@@ -210,25 +225,21 @@
       cursor: pointer;
       margin-top: 10px;
     }
-    /* Importpagina specifieke knop */
-    #gamesPage .import-game-btn {
-      background-color: #3D3D3D;
-      color: white;
-      font-size: 50px;
-      padding: 15px;
-      border: none;
-      margin: 20px auto;
-      cursor: pointer;
-      width: 100%;
-      max-width: 1000px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-    }
   </style>
 </head>
 <body>
+  <div class="header">
+    <button class="back-btn">&#8592;</button>
+    <div class="title">Game Titel</div>
+  </div>
+  <canvas id="gameCanvas"></canvas>
   <!-- Dynamische content wordt via JavaScript opgebouwd -->
   <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const canvas = document.getElementById("gameCanvas");
+      canvas.width = window.innerWidth * 0.9;
+      canvas.height = window.innerHeight * 0.9;
+    });
     /* ============================
        MobileBoard class (spel-logica)
        ============================ */
@@ -656,7 +667,6 @@
         overlay.id = "gameOverBanner";
         overlay.innerHTML = `<div class="title">${this.board.winner ? this.board.winner.toUpperCase() + " WINS!" : "DRAW!"}</div>
           <div>
-            <button onclick="startGameReview(true)">View Game</button>
             <button onclick="window.currentGUI.rematch()">Rematch</button>
             <button onclick="window.currentGUI.returnToMenu()">Menu</button>
           </div>`;
@@ -685,255 +695,6 @@
         window.currentGUI = new MobileGUI(vs_ai, ai_depth, first_player);
       }
     }
-    
-    /* ============================
-       GameReviewGUI class (spel review interface)
-       ============================ */
-    class GameReviewGUI {
-      constructor(moveHistory, allowExport = true, gameName = "") {
-        document.body.innerHTML = "";
-        this.moveHistory = moveHistory;
-        this.currentIndex = 0;
-        this.board = new MobileBoard(0, "red");
-        this.canvas = document.createElement("canvas");
-        this.canvas.id = "reviewCanvas";
-        document.body.appendChild(this.canvas);
-        this.ctx = this.canvas.getContext("2d");
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
-        this.cell_size = Math.min(window.innerWidth, window.innerHeight - 100) / 10.5;
-        this.x_compress = 1;
-        this.y_compress = 1;
-        // Offset aangepast zodat het speelbord verder naar beneden start (150px)
-        this.board_offset_x = window.innerWidth * 0.5;
-        this.board_offset_y = 150;
-        this.letters = "ABCDEFGHI";
-        this.colors = {
-          red: "#FF5555",
-          red_light: "#FF9999",
-          blue: "#5555FF",
-          blue_light: "#9999FF",
-          highlight: "#FFFF00",
-          move_indicator: "#AAAAAA",
-          bg: "#2D2D2D",
-          cell: "white",
-          mirror: "grey",
-          last_move_cell: "#4D4D4D"
-        };
-        this.allowExport = allowExport;
-        if (!this.allowExport && gameName) {
-          this.createReviewHeader(gameName);
-        }
-        this.createReviewButtons();
-        this.updateBoard();
-        this.drawBoard();
-      }
-      createReviewHeader(gameName) {
-        this.header = document.createElement("div");
-        this.header.className = "header";
-        let backBtn = document.createElement("button");
-        backBtn.className = "back-btn";
-        backBtn.innerText = "←";
-        backBtn.onclick = () => { showGamesPage(); };
-        this.header.appendChild(backBtn);
-        let title = document.createElement("div");
-        title.className = "title";
-        title.innerText = gameName;
-        this.header.appendChild(title);
-        document.body.appendChild(this.header);
-      }
-      createReviewButtons() {
-        this.prevBtn = document.createElement("button");
-        this.prevBtn.innerText = "← Previous Move";
-        this.prevBtn.style.position = "fixed";
-        this.prevBtn.style.bottom = "20px";
-        this.prevBtn.style.left = "20px";
-        this.prevBtn.style.fontSize = "40px";
-        this.prevBtn.style.padding = "10px 20px";
-        this.prevBtn.style.borderRadius = "8px";
-        this.prevBtn.style.backgroundColor = "#3D3D3D";
-        this.prevBtn.style.color = "white";
-        this.prevBtn.style.border = "none";
-        this.prevBtn.style.cursor = "pointer";
-        this.prevBtn.onclick = () => { this.prevMove(); };
-        document.body.appendChild(this.prevBtn);
-        this.nextBtn = document.createElement("button");
-        this.nextBtn.innerText = "Next Move →";
-        this.nextBtn.style.position = "fixed";
-        this.nextBtn.style.bottom = "20px";
-        this.nextBtn.style.right = "20px";
-        this.nextBtn.style.fontSize = "40px";
-        this.nextBtn.style.padding = "10px 20px";
-        this.nextBtn.style.borderRadius = "8px";
-        this.nextBtn.style.backgroundColor = "#3D3D3D";
-        this.nextBtn.style.color = "white";
-        this.nextBtn.style.border = "none";
-        this.nextBtn.style.cursor = "pointer";
-        this.nextBtn.onclick = () => { this.nextMove(); };
-        document.body.appendChild(this.nextBtn);
-        this.centerContainer = document.createElement("div");
-        this.centerContainer.style.position = "fixed";
-        this.centerContainer.style.bottom = "20px";
-        this.centerContainer.style.left = "50%";
-        this.centerContainer.style.transform = "translateX(-50%)";
-        this.centerContainer.style.display = "flex";
-        this.centerContainer.style.alignItems = "center";
-        this.centerContainer.style.gap = "10px";
-        if (this.allowExport) {
-          this.exportBtn = document.createElement("button");
-          this.exportBtn.innerText = "💾";
-          this.exportBtn.style.fontSize = "30px";
-          this.exportBtn.style.padding = "5px 10px";
-          this.exportBtn.style.borderRadius = "8px";
-          this.exportBtn.style.backgroundColor = "#3D3D3D";
-          this.exportBtn.style.color = "white";
-          this.exportBtn.style.border = "none";
-          this.exportBtn.style.cursor = "pointer";
-          this.exportBtn.onclick = () => { this.exportGame(); };
-          this.centerContainer.appendChild(this.exportBtn);
-        }
-        this.moveCountLabel = document.createElement("span");
-        this.moveCountLabel.style.fontSize = "30px";
-        this.moveCountLabel.style.color = "white";
-        this.updateMoveCountLabel();
-        this.centerContainer.appendChild(this.moveCountLabel);
-        document.body.appendChild(this.centerContainer);
-        if (this.allowExport) {
-          this.backBtn = document.createElement("button");
-          this.backBtn.innerText = "← Menu";
-          this.backBtn.style.position = "fixed";
-          this.backBtn.style.top = "20px";
-          this.backBtn.style.left = "20px";
-          this.backBtn.style.fontSize = "40px";
-          this.backBtn.style.padding = "10px 20px";
-          this.backBtn.style.borderRadius = "8px";
-          this.backBtn.style.backgroundColor = "#3D3D3D";
-          this.backBtn.style.color = "white";
-          this.backBtn.style.border = "none";
-          this.backBtn.style.cursor = "pointer";
-          this.backBtn.onclick = () => { this.exitReview(); };
-          document.body.appendChild(this.backBtn);
-        }
-      }
-      updateMoveCountLabel() {
-        this.moveCountLabel.innerText = (this.currentIndex) + " / " + this.moveHistory.length;
-      }
-      updateBoard() {
-        this.board.initializeBoard();
-        this.board.last_move_from = null;
-        this.board.last_move_to = null;
-        for (let i = 0; i < this.currentIndex; i++) {
-          let move = this.moveHistory[i];
-          if (this.board.board[move.from] && this.board.board[move.to]) {
-            this.board.board[move.to].piece = move.piece;
-            this.board.board[move.from].piece = null;
-            this.board.last_move_from = move.from;
-            this.board.last_move_to = move.to;
-          }
-        }
-        this.updateMoveCountLabel();
-      }
-      drawBoard() {
-        const ctx = this.ctx;
-        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        for (let coord in this.board.board) {
-          let cell = this.board.board[coord];
-          if (!cell.active) continue;
-          let orig_row = this.letters.indexOf(coord.charAt(0));
-          let orig_col = parseInt(coord.substring(1)) - 1;
-          let iso_x = this.board_offset_x + (orig_row - orig_col) * this.cell_size * this.x_compress;
-          let iso_y = this.board_offset_y + (orig_row + orig_col) * this.cell_size * this.y_compress;
-          let is_last_move = (coord === this.board.last_move_from || coord === this.board.last_move_to);
-          let cell_fill = is_last_move ? this.colors.last_move_cell : this.colors.bg;
-          let points = [
-            {x: iso_x, y: iso_y - this.cell_size},
-            {x: iso_x + this.cell_size, y: iso_y},
-            {x: iso_x, y: iso_y + this.cell_size},
-            {x: iso_x - this.cell_size, y: iso_y}
-          ];
-          ctx.beginPath();
-          ctx.moveTo(points[0].x, points[0].y);
-          for (let i = 1; i < points.length; i++) {
-            ctx.lineTo(points[i].x, points[i].y);
-          }
-          ctx.closePath();
-          ctx.fillStyle = cell_fill;
-          ctx.fill();
-          ctx.strokeStyle = this.colors.cell;
-          ctx.lineWidth = 1;
-          ctx.stroke();
-          if (this.board.possible_moves.includes(coord)) {
-            ctx.fillStyle = this.colors.move_indicator;
-            ctx.fillRect(iso_x - this.cell_size/4, iso_y - this.cell_size/4, this.cell_size/2, this.cell_size/2);
-          }
-          if (cell.piece) {
-            let is_recent = (coord === this.board.last_move_to);
-            let piece_color = (cell.piece === 'red') 
-                              ? (is_recent ? this.colors.red_light : this.colors.red) 
-                              : (is_recent ? this.colors.blue_light : this.colors.blue);
-            let piece_points = [
-              {x: iso_x - this.cell_size, y: iso_y},
-              {x: iso_x, y: iso_y - this.cell_size},
-              {x: iso_x + this.cell_size, y: iso_y},
-              {x: iso_x, y: iso_y + this.cell_size}
-            ];
-            ctx.beginPath();
-            ctx.moveTo(piece_points[0].x, piece_points[0].y);
-            for (let i = 1; i < piece_points.length; i++) {
-              ctx.lineTo(piece_points[i].x, piece_points[i].y);
-            }
-            ctx.closePath();
-            ctx.fillStyle = piece_color;
-            ctx.fill();
-            ctx.strokeStyle = this.colors.cell;
-            ctx.lineWidth = 1;
-            ctx.stroke();
-          }
-          if (cell.mirror_letter) {
-            ctx.fillStyle = this.colors.mirror;
-            ctx.font = `${this.cell_size * 0.8}px Arial Black`;
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText(cell.mirror_letter, iso_x, iso_y);
-          }
-        }
-      }
-      prevMove() {
-        if (this.currentIndex > 0) {
-          this.currentIndex--;
-          this.updateBoard();
-          this.drawBoard();
-        }
-      }
-      nextMove() {
-        if (this.currentIndex < this.moveHistory.length) {
-          this.currentIndex++;
-          this.updateBoard();
-          this.drawBoard();
-        }
-      }
-      exportGame() {
-        let gameName = prompt("Enter a name for your game:", "My Game");
-        if (!gameName) gameName = "Unnamed Game";
-        const data = { name: gameName, moveHistory: this.moveHistory };
-        const json = JSON.stringify(data, null, 2);
-        const key = "exported_game_" + new Date().getTime();
-        localStorage.setItem(key, json);
-        alert("Game saved as: " + gameName);
-      }
-      exitReview() {
-        this.canvas.remove();
-        this.prevBtn.remove();
-        this.nextBtn.remove();
-        this.centerContainer && this.centerContainer.remove();
-        if (!this.allowExport) {
-          showGamesPage();
-        } else {
-          MobileStartMenu.showMenu();
-        }
-      }
-    }
-    
     /* ============================
        MobileStartMenu class (hoofdmenu)
        ============================ */
@@ -957,12 +718,10 @@
         buttonFrame.style.gap = "10px";
         let vsAiBtn = this.createMenuButton("VS AI", () => { this.showAIDifficulty(); });
         let twoPlayersBtn = this.createMenuButton("2 Players", () => { this.showTwoPlayerColor(); });
-        let gamesBtn = this.createMenuButton("Saved games", () => { showGamesPage(); });
         let howToPlayBtn = this.createMenuButton("How to play", () => { this.showHowToPlayPage(); });
-        // Nieuwe volgorde: VS AI, 2 Players, Games, How to play
+        // Nieuwe volgorde: VS AI, 2 Players, How to play
         buttonFrame.appendChild(vsAiBtn);
         buttonFrame.appendChild(twoPlayersBtn);
-        buttonFrame.appendChild(gamesBtn);
         buttonFrame.appendChild(howToPlayBtn);
         mainDiv.appendChild(buttonFrame);
         document.body.appendChild(mainDiv);
@@ -1071,254 +830,6 @@
         new MobileStartMenu();
       }
     }
-    
-    /* Global functie: Games-pagina */
-    function showGamesPage() {
-      document.body.innerHTML = "";
-      let container = document.createElement("div");
-      container.id = "gamesPage";
-      let title = document.createElement("h2");
-      title.innerText = "My Games";
-      container.appendChild(title);
-      
-      let importBtn = document.createElement("button");
-      importBtn.className = "import-game-btn";
-      importBtn.innerText = "Import Game";
-      importBtn.onclick = () => { showImportModal(); };
-      container.appendChild(importBtn);
-      
-      let games = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        let key = localStorage.key(i);
-        if (key.startsWith("exported_game_")) {
-          try {
-            let data = JSON.parse(localStorage.getItem(key));
-            games.push({ key: key, name: data.name || "Unnamed", json: localStorage.getItem(key) });
-          } catch (e) { }
-        }
-      }
-      if (games.length === 0) {
-        let noGames = document.createElement("p");
-        noGames.innerText = "No saved games.";
-        container.appendChild(noGames);
-      } else {
-        games.forEach(game => {
-          let item = document.createElement("div");
-          item.className = "game-item";
-          item.onclick = () => {
-            document.body.innerHTML = "";
-            new GameReviewGUI(JSON.parse(game.json).moveHistory, false, game.name);
-          };
-          let titleSpan = document.createElement("span");
-          titleSpan.className = "game-title";
-          titleSpan.innerText = game.name;
-          item.appendChild(titleSpan);
-          let dotsBtn = document.createElement("button");
-          dotsBtn.className = "dots-btn";
-          dotsBtn.innerText = "⋮";
-          dotsBtn.onclick = (e) => {
-            e.stopPropagation();
-            let existingDropdown = item.querySelector(".dropdown");
-            if (existingDropdown) {
-              existingDropdown.remove();
-            } else {
-              let dropdown = document.createElement("div");
-              dropdown.className = "dropdown";
-              let renameBtn = document.createElement("button");
-              renameBtn.innerText = "Rename";
-              renameBtn.onclick = (ev) => {
-                ev.stopPropagation();
-                let newName = prompt("New name:", game.name);
-                if (newName) {
-                  try {
-                    let data = JSON.parse(game.json);
-                    data.name = newName;
-                    const updatedJson = JSON.stringify(data, null, 2);
-                    localStorage.setItem(game.key, updatedJson);
-                    alert("Game renamed!");
-                    showGamesPage();
-                  } catch (ex) {
-                    alert("Error renaming!");
-                  }
-                }
-                dropdown.remove();
-              };
-              dropdown.appendChild(renameBtn);
-              let codeBtn = document.createElement("button");
-              codeBtn.innerText = "Code";
-              codeBtn.onclick = (ev) => {
-                ev.stopPropagation();
-                showGameJsonModal(game.json);
-                dropdown.remove();
-              };
-              dropdown.appendChild(codeBtn);
-              let deleteBtn = document.createElement("button");
-              deleteBtn.innerText = "Delete";
-              deleteBtn.onclick = (ev) => {
-                ev.stopPropagation();
-                if (confirm("Are you sure you want to delete this game?")) {
-                  localStorage.removeItem(game.key);
-                  showGamesPage();
-                }
-                dropdown.remove();
-              };
-              dropdown.appendChild(deleteBtn);
-              item.appendChild(dropdown);
-            }
-          };
-          item.appendChild(dotsBtn);
-          container.appendChild(item);
-        });
-      }
-      let backBtn = document.createElement("button");
-      backBtn.innerText = "← Back";
-      backBtn.className = "menu-back-btn";
-      backBtn.onclick = () => { MobileStartMenu.showMenu(); };
-      container.appendChild(backBtn);
-      document.body.appendChild(container);
-    }
-    
-    /* Global functie: modal met JSON-code */
-    function showGameJsonModal(json) {
-      let modal = document.createElement("div");
-      modal.className = "modal";
-      
-      let iconContainer = document.createElement("div");
-      iconContainer.style.position = "absolute";
-      iconContainer.style.top = "10px";
-      iconContainer.style.right = "10px";
-      iconContainer.style.display = "flex";
-      iconContainer.style.gap = "10px";
-      
-      let copyBtn = document.createElement("button");
-      copyBtn.innerText = "📋";
-      copyBtn.style.backgroundColor = "#3D3D3D";
-      copyBtn.style.color = "white";
-      copyBtn.style.fontSize = "30px";
-      copyBtn.style.border = "none";
-      copyBtn.style.borderRadius = "8px";
-      copyBtn.style.cursor = "pointer";
-      copyBtn.onclick = () => {
-        navigator.clipboard.writeText(json).then(() => {});
-      };
-      
-      let closeBtn = document.createElement("button");
-      closeBtn.innerText = "✖";
-      closeBtn.style.backgroundColor = "#FF5555";
-      closeBtn.style.color = "white";
-      closeBtn.style.fontSize = "30px";
-      closeBtn.style.border = "none";
-      closeBtn.style.borderRadius = "8px";
-      closeBtn.style.cursor = "pointer";
-      closeBtn.onclick = () => { modal.remove(); };
-      
-      iconContainer.appendChild(copyBtn);
-      iconContainer.appendChild(closeBtn);
-      modal.appendChild(iconContainer);
-      
-      let pre = document.createElement("pre");
-      pre.innerText = json;
-      pre.style.marginTop = "60px";
-      modal.appendChild(pre);
-      
-      document.body.appendChild(modal);
-    }
-    
-    /* Global functie: Import modal */
-    function showImportModal() {
-      let modal = document.createElement("div");
-      modal.className = "modal";
-      let closeBtn = document.createElement("button");
-      closeBtn.innerText = "✖";
-      closeBtn.style.position = "absolute";
-      closeBtn.style.top = "10px";
-      closeBtn.style.right = "10px";
-      closeBtn.style.backgroundColor = "#FF5555";
-      closeBtn.style.color = "white";
-      closeBtn.style.fontSize = "30px";
-      closeBtn.style.border = "none";
-      closeBtn.style.borderRadius = "8px";
-      closeBtn.style.cursor = "pointer";
-      closeBtn.onclick = () => { modal.remove(); };
-      modal.appendChild(closeBtn);
-      let title = document.createElement("h2");
-      title.innerText = "Import Game";
-      title.style.textAlign = "center";
-      modal.appendChild(title);
-      let textarea = document.createElement("textarea");
-      textarea.placeholder = "Paste the game code here...";
-      textarea.style.width = "90%";
-      textarea.style.maxWidth = "600px";
-      textarea.style.height = "200px";
-      textarea.style.fontSize = "20px";
-      textarea.style.padding = "10px";
-      textarea.style.borderRadius = "8px";
-      textarea.style.display = "block";
-      textarea.style.margin = "20px auto";
-      modal.appendChild(textarea);
-      let pasteBtn = document.createElement("button");
-      pasteBtn.innerText = "📋";
-      pasteBtn.className = "paste-btn";
-      pasteBtn.style.fontSize = "30px";
-      pasteBtn.style.background = "none";
-      pasteBtn.style.border = "none";
-      pasteBtn.style.color = "white";
-      pasteBtn.style.cursor = "pointer";
-      pasteBtn.style.display = "block";
-      pasteBtn.style.margin = "0 auto";
-      pasteBtn.onclick = () => {
-        navigator.clipboard.readText().then(text => {
-          textarea.value = text;
-        });
-      };
-      modal.appendChild(pasteBtn);
-      let importBtn = document.createElement("button");
-      importBtn.innerText = "Import";
-      importBtn.className = "menu-btn";
-      importBtn.style.fontSize = "40px";
-      importBtn.style.display = "block";
-      importBtn.style.margin = "20px auto";
-      importBtn.onclick = () => {
-        try {
-          let data = JSON.parse(textarea.value);
-          if (data.moveHistory) {
-            let gameName = data.name || prompt("Enter a name for the imported game: My Game");
-            if (!gameName) gameName = "Unnamed Game";
-            data.name = gameName;
-            const json = JSON.stringify(data, null, 2);
-            const key = "exported_game_" + new Date().getTime();
-            localStorage.setItem(key, json);
-            alert("Game successfully imported as: " + gameName);
-            modal.remove();
-            showGamesPage();
-          } else {
-            alert("Invalid game code!");
-          }
-        } catch (e) {
-          alert("Error reading game code!");
-        }
-      };
-      modal.appendChild(importBtn);
-      document.body.appendChild(modal);
-    }
-    
-    /* Global functie: start game review vanuit game-over */
-    function startGameReview(allowExport = true) {
-      if (window.currentGUI) {
-        let canvas = document.getElementById("gameCanvas");
-        if (canvas) canvas.remove();
-        let backButton = document.querySelector(".game-back-btn");
-        if (backButton) backButton.remove();
-        let gameOverBanner = document.getElementById("gameOverBanner");
-        if (gameOverBanner) gameOverBanner.remove();
-      }
-      document.body.innerHTML = "";
-      new GameReviewGUI(window.currentGUI.board.moveHistory, allowExport);
-    }
-    
-    document.addEventListener("click", () => {
-      document.querySelectorAll(".dropdown").forEach(dropdown => dropdown.remove());
-    });
     
     window.onload = function() {
       new MobileStartMenu();

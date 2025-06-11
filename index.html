@@ -1,828 +1,2611 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <title>Mirrorrim Mobile</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background-color: #2D2D2D;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-      color: white;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    #gameCanvas {
-      display: block;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-    /* Hoofdmenu, Games- en Importpagina */
-    #menu, #importPage {
-      width: 100vw;
-      height: 100vh;
-      background-color: #2D2D2D;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      box-sizing: border-box;
-      text-align: center;
-    }
-    /* Header styling voor game */
-    .header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 80px;
-      background-color: transparent;
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      box-sizing: border-box;
-      z-index: 12;
-    }
-    .header .back-btn {
-      font-size: 70px;
-      background: none;
-      border: none;
-      color: white;
-      cursor: pointer;
-      position: absolute;
-      left: 25%;
-      transform: translateX(-50%);
-    }
-    .header .title {
-      font-size: 50px;
-      position: absolute;
-      left: 75%;
-      transform: translateX(-50%);
-    }
-    /* Titels */
-    h1 {
-      font-size: 140px;
-      margin-bottom: 50px;
-    }
-    h2 {
-      font-size: 120px;
-      margin-bottom: 40px;
-    }
-    /* Menu knoppen */
-    .menu-btn {
-      background-color: #3D3D3D;
-      color: white;
-      font-size: 100px;
-      padding: 20px;
-      padding-left: 100px;
-      padding-right: 100px;
-      border: none;
-      margin: 10px auto;
-      cursor: pointer;
-      width: 100%;
-      max-width: 1200px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-    }
-    .menu-btn.red { background-color: #FF5555; }
-    .menu-btn.blue { background-color: #5555FF; }
-    /* Game-over overlay */
-    #gameOverBanner {
-      position: absolute;
-      top: 10%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 90%;
-      max-width: 600px;
-      background-color: rgba(61,61,61,0.75);
-      padding: 20px;
-      border-radius: 10px;
-      text-align: center;
-      z-index: 10;
-    }
-    #gameOverBanner .title {
-      font-size: 90px;
-      font-weight: bold;
-      margin-bottom: 20px;
-    }
-    #gameOverBanner button {
-      background-color: rgba(77,77,77,0.9);
-      color: white;
-      font-size: 80px;
-      padding: 10px 15px;
-      border: none;
-      margin: 10px;
-      border-radius: 8px;
-      cursor: pointer;
-      width: 90%;
-      max-width: 500px;
-    }
-    /* Algemene back-knoppen styling */
-    .menu-back-btn, .game-back-btn {
-      position: fixed;
-      top: 20px;
-      left: 25%;
-      transform: translateX(-50%);
-      background-color: #3D3D3D;
-      color: white;
-      font-size: 70px;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-      z-index: 11;
-    }
-    /* In Games-pagina: game-item styling */
-    .game-item {
-      width: 90%;
-      max-width: 600px;
-      background-color: #3D3D3D;
-      padding: 10px;
-      margin: 5px auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-radius: 8px;
-      cursor: pointer;
-      position: relative;
-    }
-    .game-title {
-      font-size: 60px;
-    }
-    .dots-btn {
-      font-size: 30px;
-      background: none;
-      border: none;
-      color: white;
-      cursor: pointer;
-    }
-    /* Dropdown menu voor de dots-knop */
-    .dropdown {
-      position: absolute;
-      background-color: #3D3D3D;
-      border: 1px solid white;
-      border-radius: 5px;
-      padding: 5px;
-      z-index: 15;
-      top: 40px;
-      right: 10px;
-    }
-    .dropdown button {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 25px;
-      display: block;
-      width: 100%;
-      text-align: left;
-      padding: 5px;
-      cursor: pointer;
-    }
-    /* Modal voor JSON-code of import */
-    .modal {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: #2D2D2D;
-      padding: 20px;
-      border: 2px solid white;
-      border-radius: 10px;
-      z-index: 20;
-      width: 90%;
-      max-width: 600px;
-      max-height: 80vh;
-      overflow: auto;
-      box-sizing: border-box;
-    }
-    .modal pre {
-      text-align: left;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      background-color: #3D3D3D;
-      padding: 10px;
-      border-radius: 5px;
-      font-size: 20px;
-    }
-    .modal .close-btn {
-      background-color: #FF5555;
-      color: white;
-      font-size: 30px;
-      padding: 5px 10px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsieve Klok & Tijdbeheer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Thema variabelen */
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --accent: #007bff;
+            --accent-hover: #0056b3;
+            --border: #dee2e6;
+            --shadow: rgba(0,0,0,0.1);
+            --clock-face: #ffffff;
+            --clock-numbers: #333333;
+            --clock-hands: #333333;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --event-indicator: #dc3545;
+            --today-highlight: #ffc107;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --accent: #4dabf7;
+            --accent-hover: #339af0;
+            --border: #404040;
+            --shadow: rgba(255,255,255,0.1);
+            --clock-face: #2d2d2d;
+            --clock-numbers: #ffffff;
+            --clock-hands: #ffffff;
+            --event-indicator: #ff6b6b;
+            --today-highlight: #ffd43b;
+        }
+
+        [data-theme="ocean"] {
+            --bg-primary: #e3f2fd;
+            --bg-secondary: #bbdefb;
+            --text-primary: #0d47a1;
+            --text-secondary: #1565c0;
+            --accent: #0277bd;
+            --accent-hover: #01579b;
+            --border: #90caf9;
+            --shadow: rgba(13,71,161,0.1);
+            --clock-face: #e1f5fe;
+            --clock-numbers: #0d47a1;
+            --clock-hands: #0277bd;
+            --event-indicator: #e53935;
+            --today-highlight: #ffb300;
+        }
+
+        [data-theme="retro"] {
+            --bg-primary: #fff8e1;
+            --bg-secondary: #ffecb3;
+            --text-primary: #5d4037;
+            --text-secondary: #8d6e63;
+            --accent: #ff8f00;
+            --accent-hover: #e65100;
+            --border: #ffcc02;
+            --shadow: rgba(93,64,55,0.1);
+            --clock-face: #fffde7;
+            --clock-numbers: #5d4037;
+            --clock-hands: #ff8f00;
+            --event-indicator: #d32f2f;
+            --today-highlight: #f57c00;
+        }
+
+        [data-theme="high-contrast"] {
+            --bg-primary: #000000;
+            --bg-secondary: #333333;
+            --text-primary: #ffffff;
+            --text-secondary: #ffff00;
+            --accent: #00ff00;
+            --accent-hover: #00cc00;
+            --border: #ffffff;
+            --shadow: rgba(255,255,255,0.3);
+            --clock-face: #000000;
+            --clock-numbers: #ffffff;
+            --clock-hands: #00ff00;
+            --event-indicator: #ff0000;
+            --today-highlight: #ffff00;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            opacity: 0;
+            animation: fadeIn 0.8s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        @media (min-width: 768px) {
+            .header {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+        }
+
+        .local-time {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            order: 1;
+        }
+
+        .settings-menu {
+            position: relative;
+            order: 2;
+        }
+
+        .settings-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-primary);
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+
+        .settings-btn:hover {
+            background: var(--shadow);
+        }
+
+        .settings-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow);
+            padding: 0.5rem;
+            min-width: 150px;
+            display: none;
+            z-index: 101;
+        }
+
+        .settings-dropdown.show {
+            display: block;
+        }
+
+        .theme-option {
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .theme-option:hover {
+            background: var(--bg-secondary);
+        }
+
+        .theme-option.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            flex: 1 1 auto;
+            min-width: 120px;
+            padding: 1rem 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        @media (min-width: 768px) {
+            .tab {
+                font-size: 1rem;
+                padding: 1rem;
+            }
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+            background: var(--shadow);
+        }
+
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+            background: var(--bg-primary);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 768px) {
+            .tab-content {
+                padding: 2rem;
+            }
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Klok Tab */
+        .main-clock-container {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .analog-clock {
+            width: 220px;
+            height: 220px;
+            border: 8px solid var(--border);
+            border-radius: 50%;
+            position: relative;
+            margin: 0 auto 1.5rem;
+            background: var(--clock-face);
+            box-shadow: 0 8px 16px var(--shadow);
+        }
+
+        @media (min-width: 768px) {
+            .analog-clock {
+                width: 300px;
+                height: 300px;
+                margin: 0 auto 2rem;
+            }
+        }
+
+        .clock-number {
+            position: absolute;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--clock-numbers);
+        }
+
+        .clock-hand {
+            position: absolute;
+            background: var(--clock-hands);
+            transform-origin: bottom center;
+            border-radius: 2px;
+        }
+
+        .hour-hand {
+            width: 6px;
+            height: 60px;
+            left: 50%;
+            bottom: 50%;
+            margin-left: -3px;
+        }
+
+        .minute-hand {
+            width: 4px;
+            height: 85px;
+            left: 50%;
+            bottom: 50%;
+            margin-left: -2px;
+        }
+
+        .second-hand {
+            width: 2px;
+            height: 95px;
+            left: 50%;
+            bottom: 50%;
+            margin-left: -1px;
+            background: var(--danger);
+            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @media (min-width: 768px) {
+            .hour-hand {
+                height: 80px;
+            }
+            .minute-hand {
+                height: 110px;
+            }
+            .second-hand {
+                height: 120px;
+            }
+        }
+
+        .clock-center {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--clock-hands);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        @media (min-width: 768px) {
+            .clock-center {
+                width: 16px;
+                height: 16px;
+            }
+        }
+
+        .digital-time {
+            font-size: 2rem;
+            font-weight: 300;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        @media (min-width: 768px) {
+            .digital-time {
+                font-size: 3rem;
+                margin-bottom: 2rem;
+            }
+        }
+
+        /* Verbeterde wereldklokken */
+        .world-clocks-section {
+            margin-top: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .world-clocks-section {
+                margin-top: 3rem;
+            }
+        }
+
+        .world-clock-controls {
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        @media (min-width: 576px) {
+            .world-clock-controls {
+                flex-direction: row;
+                align-items: center;
+            }
+        }
+
+        .world-clock-controls select {
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            flex: 1;
+            min-width: 100%;
+        }
+
+        @media (min-width: 576px) {
+            .world-clock-controls select {
+                min-width: 250px;
+            }
+        }
+
+        .btn {
+            padding: 0.75rem 1.25rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .world-clocks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .world-clocks-grid {
+                gap: 2rem;
+            }
+        }
+
+        .world-clock {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 4px 8px var(--shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .world-clock:hover {
+            transform: translateY(-5px);
+        }
+
+        .world-clock-menu {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+        }
+
+        .world-clock-menu button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+
+        .world-clock-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            box-shadow: 0 4px 12px var(--shadow);
+            padding: 0.5rem;
+            min-width: 120px;
+            display: none;
+            z-index: 10;
+        }
+
+        .world-clock-dropdown.show {
+            display: block;
+        }
+
+        .world-clock-dropdown div {
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .world-clock-dropdown div:hover {
+            background: var(--bg-secondary);
+        }
+
+        .world-clock h3 {
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+        }
+
+        .world-clock .analog-clock {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .world-clock .analog-clock {
+                width: 180px;
+                height: 180px;
+                margin: 0 auto 1.5rem;
+            }
+        }
+
+        .world-clock .digital-time {
+            font-size: 1.25rem;
+            margin-bottom: 0;
+        }
+
+        /* Stopwatch Tab met milliseconden */
+        .stopwatch-container {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .stopwatch-display {
+            font-size: 2.5rem;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            letter-spacing: 1px;
+        }
+
+        @media (min-width: 768px) {
+            .stopwatch-display {
+                font-size: 4.5rem;
+                margin-bottom: 2rem;
+            }
+        }
+
+        .stopwatch-controls {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        @media (min-width: 768px) {
+            .stopwatch-controls {
+                gap: 1rem;
+                margin-bottom: 2rem;
+            }
+        }
+
+        .laps-container {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--bg-secondary);
+            box-shadow: inset 0 2px 4px var(--shadow);
+        }
+
+        .lap-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        @media (min-width: 768px) {
+            .lap-item {
+                font-size: 1rem;
+                padding: 0.75rem 1.25rem;
+            }
+        }
+
+        .lap-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Timer Tab */
+        .timer-container {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .timer-display {
+            font-size: 2.5rem;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        @media (min-width: 768px) {
+            .timer-display {
+                font-size: 4.5rem;
+                margin-bottom: 2rem;
+            }
+        }
+
+        .timer-inputs {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        @media (min-width: 768px) {
+            .timer-inputs {
+                gap: 1rem;
+                margin-bottom: 2rem;
+            }
+        }
+
+        .timer-inputs input {
+            width: 80px;
+            padding: 0.75rem;
+            text-align: center;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        @media (min-width: 768px) {
+            .timer-inputs input {
+                width: 100px;
+                font-size: 1.5rem;
+            }
+        }
+
+        .timer-controls {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        @media (min-width: 768px) {
+            .timer-controls {
+                gap: 1rem;
+            }
+        }
+
+        /* Agenda Tab met kalender */
+        .agenda-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .agenda-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .agenda-controls input {
+            flex: 1;
+            min-width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        @media (min-width: 576px) {
+            .agenda-controls input {
+                min-width: 200px;
+            }
+        }
+
+        .calendar-container {
+            background: var(--bg-secondary);
+            padding: 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 8px var(--shadow);
+        }
+
+        @media (min-width: 768px) {
+            .calendar-container {
+                padding: 1.5rem;
+                margin-bottom: 2rem;
+            }
+        }
+
+        .calendar-header {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        @media (min-width: 576px) {
+            .calendar-header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1.5rem;
+            }
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        @media (min-width: 576px) {
+            .calendar-nav {
+                justify-content: flex-start;
+            }
+        }
+
+        .calendar-nav button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 0.9rem;
+        }
+
+        @media (min-width: 768px) {
+            .calendar-nav button {
+                padding: 0.5rem 1rem;
+            }
+        }
+
+        .calendar-nav button:hover {
+            background: var(--accent-hover);
+        }
+
+        .calendar-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            .calendar-title {
+                font-size: 1.5rem;
+            }
+        }
+
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.25rem;
+            margin-bottom: 0.25rem;
+            text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            .calendar-weekdays {
+                gap: 0.5rem;
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        .calendar-weekday {
+            font-weight: bold;
+            color: var(--text-secondary);
+            padding: 0.5rem 0.25rem;
+            font-size: 0.85rem;
+        }
+
+        @media (min-width: 768px) {
+            .calendar-weekday {
+                padding: 0.5rem;
+                font-size: 1rem;
+            }
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.25rem;
+        }
+
+        @media (min-width: 768px) {
+            .calendar-days {
+                gap: 0.5rem;
+            }
+        }
+
+        .calendar-day {
+            aspect-ratio: 1/1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            font-size: 0.85rem;
+        }
+
+        @media (min-width: 768px) {
+            .calendar-day {
+                font-size: 1rem;
+            }
+        }
+
+        .calendar-day:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .calendar-day.today {
+            background: var(--today-highlight);
+            color: var(--text-primary);
+            font-weight: bold;
+        }
+
+        .calendar-day.event-day::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            width: 6px;
+            height: 6px;
+            background: var(--event-indicator);
+            border-radius: 50%;
+        }
+
+        .calendar-day.selected {
+            background: var(--accent);
+            color: white;
+        }
+
+        .calendar-day.other-month {
+            opacity: 0.5;
+        }
+
+        .agenda-form {
+            background: var(--bg-secondary);
+            padding: 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        @media (min-width: 768px) {
+            .agenda-form {
+                padding: 1.5rem;
+                margin-bottom: 2rem;
+            }
+        }
+
+        .agenda-form h3 {
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            font-size: 1.25rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .agenda-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .agenda-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            transition: transform 0.2s;
+        }
+
+        @media (min-width: 768px) {
+            .agenda-item {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                padding: 1.5rem;
+            }
+        }
+
+        .agenda-item:hover {
+            transform: translateX(5px);
+        }
+
+        .agenda-item-info h4 {
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+        }
+
+        .agenda-item-info p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .agenda-item-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .btn-small {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .day-events-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-top: 1.5rem;
+            display: none;
+        }
+
+        @media (min-width: 768px) {
+            .day-events-container {
+                padding: 1.5rem;
+                margin-top: 2rem;
+            }
+        }
+
+        .day-events-container.active {
+            display: block;
+        }
+
+        .day-events-header {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (min-width: 576px) {
+            .day-events-header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
+        .day-events-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        @media (min-width: 768px) {
+            .day-events-title {
+                font-size: 1.25rem;
+            }
+        }
+
+        .day-events-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* Lijsten Tab */
+        .lists-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .lists-header {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .lists-header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 2rem;
+            }
+        }
+
+        .lists-tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .list-tab {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        @media (min-width: 768px) {
+            .list-tab {
+                padding: 0.5rem 1rem;
+                font-size: 1rem;
+            }
+        }
+
+        .list-tab:hover {
+            background: var(--accent-hover);
+            color: white;
+        }
+
+        .list-tab.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .list-tab-menu {
+            margin-left: 0.5rem;
+            padding: 0.2rem;
+            border-radius: 2px;
+            opacity: 0.7;
+        }
+
+        .list-tab-menu:hover {
+            background: rgba(255,255,255,0.2);
+            opacity: 1;
+        }
+
+        .list-tab-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            box-shadow: 0 4px 12px var(--shadow);
+            padding: 0.5rem;
+            min-width: 120px;
+            display: none;
+            z-index: 10;
+        }
+
+        .list-tab-dropdown.show {
+            display: block;
+        }
+
+        .list-tab-dropdown div {
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .list-tab-dropdown div:hover {
+            background: var(--bg-secondary);
+        }
+
+        .add-list-btn {
+            padding: 0.5rem 1rem;
+            border: 2px dashed var(--border);
+            border-radius: 4px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s;
+            align-self: flex-start;
+        }
+
+        .add-list-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .list-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .list-content {
+                padding: 2rem;
+            }
+        }
+
+        .list-add-item {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (min-width: 576px) {
+            .list-add-item {
+                flex-direction: row;
+                align-items: center;
+            }
+        }
+
+        .list-add-item input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .list-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        @media (min-width: 768px) {
+            .list-item {
+                gap: 1rem;
+                padding: 0.75rem;
+            }
+        }
+
+        .list-item:hover {
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .list-item.completed {
+            opacity: 0.6;
+        }
+
+        .list-item.completed .list-item-text {
+            text-decoration: line-through;
+            color: var(--text-secondary);
+        }
+
+        .list-item-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        .list-item-text {
+            flex: 1;
+            color: var(--text-primary);
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 0.95rem;
+        }
+
+        @media (min-width: 768px) {
+            .list-item-text {
+                font-size: 1rem;
+            }
+        }
+
+        .list-item-text:focus {
+            background: var(--bg-secondary);
+            padding: 0.25rem;
+            border-radius: 2px;
+        }
+
+        .list-item-actions {
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .list-item:hover .list-item-actions {
+            opacity: 1;
+        }
+
+        .list-item-btn {
+            padding: 0.25rem 0.5rem;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+
+        .edit-list-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .edit-list-modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 8px 32px var(--shadow);
+        }
+
+        @media (min-width: 768px) {
+            .modal-content {
+                padding: 2rem;
+            }
+        }
+
+        .modal-content h3 {
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+        }
+
+        @media (min-width: 768px) {
+            .modal-actions {
+                gap: 1rem;
+            }
+        }
+
+        .empty-list {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .empty-list {
+                padding: 3rem;
+            }
+        }
+
+        .empty-list h3 {
+            margin-bottom: 1rem;
+        }
+
+        /* Mobiele navigatie knop */
+        .mobile-menu-btn {
+            display: block;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--accent);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            z-index: 99;
+            box-shadow: 0 4px 12px var(--shadow);
+            border: none;
+            cursor: pointer;
+        }
+
+        @media (min-width: 768px) {
+            .mobile-menu-btn {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
-  <!-- Dynamische content wordt via JavaScript opgebouwd -->
-  <script>
-    /* ============================
-       MobileBoard class (spel-logica)
-       ============================ */
-    class MobileBoard {
-      constructor(ai_depth = 3, first_player = 'red') {
-        this.board = {};
-        this.current_turn = first_player;
-        this.game_ended = false;
-        this.winner = null;
-        this.selected_piece = null;
-        this.possible_moves = [];
-        this.ai_depth = ai_depth;
-        this.mirrorFromCoord = ['E5', 'F6', 'G7', 'H8', 'I9'];
-        this.last_move_from = null;
-        this.last_move_to = null;
-        this.initializeBoard();
-        this.moveHistory = []; // Alle zetten opslaan
-      }
-      clone() {
-        let newBoard = new MobileBoard(this.ai_depth, this.current_turn);
-        newBoard.board = JSON.parse(JSON.stringify(this.board));
-        newBoard.current_turn = this.current_turn;
-        newBoard.game_ended = this.game_ended;
-        newBoard.winner = this.winner;
-        newBoard.selected_piece = this.selected_piece;
-        newBoard.possible_moves = [...this.possible_moves];
-        newBoard.mirrorFromCoord = this.mirrorFromCoord;
-        newBoard.last_move_from = this.last_move_from;
-        newBoard.last_move_to = this.last_move_to;
-        newBoard.moveHistory = [...this.moveHistory];
-        return newBoard;
-      }
-      initializeBoard() {
-        const activeCells = {
-          'A1': true, 'A2': true, 'A3': true, 'A4': true, 'A5': true,
-          'B1': true, 'B2': true, 'B3': true, 'B4': true, 'B5': true,
-          'C1': true, 'C2': true, 'C3': true, 'C4': true, 'C5': true,
-          'D1': true, 'D2': true, 'D3': true, 'D4': true, 'D5': true, 'D6': true,
-          'E1': true, 'E2': true, 'E3': true, 'E4': true, 'E5': true, 'E6': true, 'E7': true, 'E8': true, 'E9': true,
-          'F4': true, 'F5': true, 'F6': true, 'F7': true, 'F8': true, 'F9': true,
-          'G5': true, 'G6': true, 'G7': true, 'G8': true, 'G9': true,
-          'H5': true, 'H6': true, 'H7': true, 'H8': true, 'H9': true,
-          'I5': true, 'I6': true, 'I7': true, 'I8': true, 'I9': true
-        };
-        const initialPieces = {
-          'A1': 'blue', 'A3': 'blue', 'B2': 'blue', 'C1': 'blue', 'C3': 'blue',
-          'A2': 'red', 'B1': 'red', 'B3': 'red', 'C2': 'red',
-          'I8': 'blue', 'H9': 'blue', 'H7': 'blue', 'G8': 'blue',
-          'I7': 'red', 'I9': 'red', 'H8': 'red', 'G7': 'red', 'G9': 'red'
-        };
-        const mirrorLetters = {
-          'A1': 'M', 'B2': 'I', 'C3': 'R', 'D4': 'R',
-          'E5': 'O', 'F6': 'R', 'G7': 'R', 'H8': 'I', 'I9': 'M'
-        };
-        for (let coord in activeCells) {
-          this.board[coord] = {
-            active: activeCells[coord],
-            piece: initialPieces[coord] || null,
-            mirror_letter: mirrorLetters[coord] || null
-          };
-        }
-      }
-      getPieceColor(coord) {
-        return (this.board[coord] && this.board[coord].piece) ? this.board[coord].piece : null;
-      }
-      findValidMoves(coord) {
-        let moves = [];
-        if (!this.board[coord] || !this.board[coord].active) return moves;
-        let letter = coord.charAt(0);
-        let number = parseInt(coord.substring(1));
-        let letters = "ABCDEFGHI";
-        let directions = [[-1,0],[1,0],[0,-1],[0,1]];
-        for (let [d_row, d_col] of directions) {
-          let current_row = letters.indexOf(letter);
-          let current_col = number - 1;
-          let last_valid = null;
-          while (true) {
-            current_row += d_row;
-            current_col += d_col;
-            if (current_row < 0 || current_row >= 9 || current_col < 0 || current_col >= 9) break;
-            let new_coord = letters[current_row] + (current_col+1);
-            if (!this.board[new_coord] || !this.board[new_coord].active) break;
-            if (this.getPieceColor(new_coord)) break;
-            last_valid = new_coord;
-          }
-          if (last_valid) moves.push(last_valid);
-        }
-        return moves;
-      }
-      selectPiece(coord) {
-        if (this.getPieceColor(coord) === this.current_turn) {
-          this.selected_piece = coord;
-          this.possible_moves = this.findValidMoves(coord);
-          return true;
-        }
-        return false;
-      }
-      makeMove(to_coord) {
-        if (this.selected_piece && this.possible_moves.includes(to_coord)) {
-          let piece_color = this.board[this.selected_piece].piece;
-          this.moveHistory.push({from: this.selected_piece, to: to_coord, piece: piece_color, turn: this.current_turn});
-          this.board[this.selected_piece].piece = null;
-          this.board[to_coord].piece = piece_color;
-          this.last_move_from = this.selected_piece;
-          this.last_move_to = to_coord;
-          if (to_coord === 'E5') {
-            this.game_ended = true;
-            this.winner = piece_color;
-            return true;
-          }
-          this.current_turn = (this.current_turn === 'red') ? 'blue' : 'red';
-          this.selected_piece = null;
-          this.possible_moves = [];
-          return true;
-        }
-        return false;
-      }
-      getAllMoves(player) {
-        let moves = [];
-        for (let coord in this.board) {
-          if (this.getPieceColor(coord) === player) {
-            let valid = this.findValidMoves(coord);
-            for (let move of valid) {
-              moves.push([coord, move]);
-            }
-          }
-        }
-        return moves;
-      }
-      simulateMove(from_coord, to_coord) {
-        let newBoard = this.clone();
-        newBoard.board[from_coord].piece = null;
-        newBoard.board[to_coord].piece = this.getPieceColor(from_coord);
-        newBoard.current_turn = (this.current_turn === 'blue') ? 'red' : 'blue';
-        newBoard.last_move_from = from_coord;
-        newBoard.last_move_to = to_coord;
-        if (to_coord === 'E5') {
-          newBoard.game_ended = true;
-          newBoard.winner = this.getPieceColor(from_coord);
-        }
-        return newBoard;
-      }
-      distanceToCenter(coord) {
-        let row = coord.charCodeAt(0) - 'A'.charCodeAt(0);
-        let col = parseInt(coord.substring(1)) - 1;
-        return Math.abs(row - 4) + Math.abs(col - 4);
-      }
-      evaluate() {
-        if (this.board['E5'].piece === 'blue') return 1000;
-        if (this.board['E5'].piece === 'red') return -1000;
-        let score = 0;
-        for (let coord in this.board) {
-          if (this.board[coord].piece === 'blue') {
-            score += 10 - this.distanceToCenter(coord);
-          } else if (this.board[coord].piece === 'red') {
-            score -= 10 - this.distanceToCenter(coord);
-          }
-        }
-        return score;
-      }
-      minimax(depth, alpha, beta, maximizingPlayer) {
-        if (depth === 0 || this.game_ended) {
-          return this.evaluate();
-        }
-        if (maximizingPlayer) {
-          let maxEval = -Infinity;
-          let moves = this.getAllMoves('blue');
-          for (let move of moves) {
-            let child = this.simulateMove(move[0], move[1]);
-            let evaluation = child.minimax(depth - 1, alpha, beta, false);
-            maxEval = Math.max(maxEval, evaluation);
-            alpha = Math.max(alpha, evaluation);
-            if (beta <= alpha) break;
-          }
-          return maxEval;
-        } else {
-          let minEval = Infinity;
-          let moves = this.getAllMoves('red');
-          for (let move of moves) {
-            let child = this.simulateMove(move[0], move[1]);
-            let evaluation = child.minimax(depth - 1, alpha, beta, true);
-            minEval = Math.min(minEval, evaluation);
-            beta = Math.min(beta, evaluation);
-            if (beta <= alpha) break;
-          }
-          return minEval;
-        }
-      }
-      getAIMove() {
-        let best_move = null;
-        let best_value = -Infinity;
-        let possible_moves = this.getAllMoves('blue');
-        if (possible_moves.length === 0) return null;
-        for (let move of possible_moves) {
-          let child = this.simulateMove(move[0], move[1]);
-          if (child.game_ended && child.winner === 'blue') {
-            return move;
-          }
-        }
-        for (let move of possible_moves) {
-          let child = this.simulateMove(move[0], move[1]);
-          let evaluation = child.minimax(this.ai_depth, -Infinity, Infinity, false);
-          if (evaluation > best_value) {
-            best_value = evaluation;
-            best_move = move;
-          }
-        }
-        return best_move;
-      }
-    }
-    
-    /* ============================
-       MobileGUI class (spelinterface)
-       ============================ */
-    class MobileGUI {
-      constructor(vs_ai, ai_depth, first_player) {
-        this.vs_ai = vs_ai;
-        this.ai_depth = ai_depth;
-        this.first_player = first_player;
-        this.board = new MobileBoard(ai_depth, first_player);
-        this.letters = "ABCDEFGHI";
-        this.canvas = document.getElementById("gameCanvas");
-        this.ctx = this.canvas.getContext("2d");
-        this.canvas.style.display = "block";
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
-        // Pas de celgrootte aan en houd rekening met de header
-        this.cell_size = Math.min(window.innerWidth, window.innerHeight - 100) / 10.5;
-        this.x_compress = 1;
-        this.y_compress = 1;
-        this.cell_size = Math.min(window.innerWidth, window.innerHeight) / 11;
-        this.cell_size = Math.min(window.innerWidth, window.innerHeight) / 11;
-        this.board_offset_x = this.canvas.width / 2;
-        this.board_offset_y = this.canvas.height / 2 - (16 * this.cell_size)/2; // Verticale centering
-        this.colors = {
-          red: "#FF5555",
-          red_light: "#FF9999",
-          blue: "#5555FF",
-          blue_light: "#9999FF",
-          highlight: "#FFFF00",
-          move_indicator: "#AAAAAA",
-          bg: "#2D2D2D",
-          cell: "white",
-          mirror: "grey",
-          last_move_cell: "#4D4D4D"
-        };
-        this.game_over_banner = null;
-        this.createGameHeader();
-        this.drawBoard();
-        this.canvas.addEventListener("click", (e) => this.onTouch(e));
-        if (this.vs_ai && this.first_player === 'blue') {
-          setTimeout(() => this.aiTurn(), 500);
-        }
-      }
-      // Creëer header met titel en back-knop (terug naar hoofdmenu)
-      createGameHeader() {
-        this.header = document.createElement("div");
-        this.header.className = "header";
-        // Back-knop
-        let backBtn = document.createElement("button");
-        backBtn.className = "back-btn";
-        backBtn.innerText = "←";
-        backBtn.onclick = () => { this.returnToMenu(); };
-        this.header.appendChild(backBtn);
-        // Titel
-        let title = document.createElement("div");
-        title.className = "title";
-        if (this.vs_ai) {
-          title.innerText = this.getAIDifficultyName(this.ai_depth);
-        } else {
-          title.innerText = "2 Players";
-        }
-        this.header.appendChild(title);
-        document.body.appendChild(this.header);
-      }
-      removeGameHeader() {
-        if (this.header) {
-          this.header.remove();
-          this.header = null;
-        }
-      }
-      getAIDifficultyName(depth) {
-        const mapping = {
-          1: "Easy",
-          2: "Beginning",
-          3: "Normal",
-          4: "Hard",
-          5: "Expert"
-        };
-        return mapping[depth] || "AI";
-      }
-      drawBoard() {
-        const ctx = this.ctx;
-        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        for (let coord in this.board.board) {
-          let cell = this.board.board[coord];
-          if (!cell.active) continue;
-          let orig_row = this.letters.indexOf(coord.charAt(0));
-          let orig_col = parseInt(coord.substring(1)) - 1;
-          let iso_x = this.board_offset_x + (orig_row - orig_col) * this.cell_size * this.x_compress;
-          let iso_y = this.board_offset_y + (orig_row + orig_col) * this.cell_size * this.y_compress;
-          let is_last_move = (coord === this.board.last_move_from || coord === this.board.last_move_to);
-          let cell_fill = is_last_move ? this.colors.last_move_cell : this.colors.bg;
-          let points = [
-            {x: iso_x, y: iso_y - this.cell_size},
-            {x: iso_x + this.cell_size, y: iso_y},
-            {x: iso_x, y: iso_y + this.cell_size},
-            {x: iso_x - this.cell_size, y: iso_y}
-          ];
-          ctx.beginPath();
-          ctx.moveTo(points[0].x, points[0].y);
-          for (let i = 1; i < points.length; i++) {
-            ctx.lineTo(points[i].x, points[i].y);
-          }
-          ctx.closePath();
-          ctx.fillStyle = cell_fill;
-          ctx.fill();
-          ctx.strokeStyle = this.colors.cell;
-          ctx.lineWidth = 1;
-          ctx.stroke();
-          if (coord === this.board.selected_piece) {
-            ctx.beginPath();
-            ctx.moveTo(points[0].x, points[0].y);
-            for (let i = 1; i < points.length; i++) {
-              ctx.lineTo(points[i].x, points[i].y);
-            }
-            ctx.closePath();
-            ctx.strokeStyle = this.colors.highlight;
-            ctx.lineWidth = 5;
-            ctx.stroke();
-          }
-          if (this.board.possible_moves.includes(coord)) {
-            ctx.fillStyle = this.colors.move_indicator;
-            ctx.fillRect(iso_x - this.cell_size/4, iso_y - this.cell_size/4, this.cell_size/2, this.cell_size/2);
-          }
-          if (cell.piece) {
-            let is_recent = (coord === this.board.last_move_to);
-            let piece_color = (cell.piece === 'red') 
-                              ? (is_recent ? this.colors.red_light : this.colors.red) 
-                              : (is_recent ? this.colors.blue_light : this.colors.blue);
-            let piece_points = [
-              {x: iso_x - this.cell_size, y: iso_y},
-              {x: iso_x, y: iso_y - this.cell_size},
-              {x: iso_x + this.cell_size, y: iso_y},
-              {x: iso_x, y: iso_y + this.cell_size}
-            ];
-            ctx.beginPath();
-            ctx.moveTo(piece_points[0].x, piece_points[0].y);
-            for (let i = 1; i < piece_points.length; i++) {
-              ctx.lineTo(piece_points[i].x, piece_points[i].y);
-            }
-            ctx.closePath();
-            ctx.fillStyle = piece_color;
-            ctx.fill();
-            ctx.strokeStyle = this.colors.cell;
-            ctx.lineWidth = 1;
-            ctx.stroke();
-          }
-          if (cell.mirror_letter) {
-            ctx.fillStyle = this.colors.mirror;
-            ctx.font = `${this.cell_size * 0.8}px Arial Black`;
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText(cell.mirror_letter, iso_x, iso_y);
-          }
-        }
-      }
-      onTouch(event) {
-        if (this.board.game_ended) return;
-        let rect = this.canvas.getBoundingClientRect();
-        let x = event.clientX - rect.left - this.board_offset_x;
-        let y = event.clientY - rect.top - this.board_offset_y;
-        let x_iso = x / (this.cell_size * this.x_compress);
-        let y_iso = y / (this.cell_size * this.y_compress);
-        let orig_row = Math.round((y_iso + x_iso) / 2);
-        let orig_col = Math.round((y_iso - x_iso) / 2);
-        if (orig_row < 0 || orig_row >= 9 || orig_col < 0 || orig_col >= 9) return;
-        let iso_x = this.board_offset_x + (orig_row - orig_col) * this.cell_size * this.x_compress;
-        let iso_y = this.board_offset_y + (orig_row + orig_col) * this.cell_size * this.y_compress;
-        let dx = Math.abs(event.clientX - iso_x);
-        let dy = Math.abs(event.clientY - iso_y);
-        if (dx + dy > this.cell_size) return;
-        let coord = this.letters[orig_row] + (orig_col + 1);
-        if (!this.board.board[coord] || !this.board.board[coord].active) return;
-        let is_own_piece = (this.board.getPieceColor(coord) === this.board.current_turn);
-        if (this.board.selected_piece) {
-          if (is_own_piece) {
-            this.board.selectPiece(coord);
-          } else {
-            if (this.board.makeMove(coord)) {
-              if (this.board.game_ended) {
-                this.showGameOver();
-              } else if (this.vs_ai) {
-                setTimeout(() => this.aiTurn(), 500);
-              }
-            }
-            this.drawBoard();
-          }
-        } else {
-          if (is_own_piece) {
-            this.board.selectPiece(coord);
-            this.drawBoard();
-          }
-        }
-        this.drawBoard();
-      }
-      aiTurn() {
-        if (this.board.current_turn === 'blue' && !this.board.game_ended) {
-          let best_move = this.board.getAIMove();
-          if (best_move) {
-            let [from_coord, to_coord] = best_move;
-            if (this.board.selectPiece(from_coord)) {
-              if (this.board.makeMove(to_coord)) {
-                this.drawBoard();
-                if (this.board.game_ended) {
-                  this.showGameOver();
-                }
-              }
-            }
-          }
-        }
-      }
-      showGameOver() {
-        if (this.game_over_banner) return;
-        let overlay = document.createElement("div");
-        overlay.id = "gameOverBanner";
-        overlay.innerHTML = `<div class="title">${this.board.winner ? this.board.winner.toUpperCase() + " WINS!" : "DRAW!"}</div>
-          <div>
-            <button onclick="window.currentGUI.rematch()">Rematch</button>
-            <button onclick="window.currentGUI.returnToMenu()">Menu</button>
-          </div>`;
-        document.body.appendChild(overlay);
-        this.game_over_banner = overlay;
-      }
-      returnToMenu() {
-        this.canvas.remove();
-        if (this.game_over_banner) this.game_over_banner.remove();
-        this.removeGameHeader();
-        MobileStartMenu.showMenu();
-      }
-      rematch() {
-        if (this.game_over_banner) {
-          this.game_over_banner.remove();
-          this.game_over_banner = null;
-        }
-        this.canvas.remove();
-        this.removeGameHeader();
-        MobileGUI.startNewGame(this.vs_ai, this.ai_depth, this.first_player);
-      }
-      static startNewGame(vs_ai, ai_depth, first_player) {
-        let canvas = document.createElement("canvas");
-        canvas.id = "gameCanvas";
-        document.body.appendChild(canvas);
-        window.currentGUI = new MobileGUI(vs_ai, ai_depth, first_player);
-      }
-    }
-    /* ============================
-       MobileStartMenu class (hoofdmenu)
-       ============================ */
-    class MobileStartMenu {
-      constructor() {
-        this.createMainMenu();
-      }
-      clearScreen() {
-        document.body.innerHTML = "";
-      }
-      createMainMenu() {
-        this.clearScreen();
-        let mainDiv = document.createElement("div");
-        mainDiv.id = "menu";
-        let title = document.createElement("h1");
-        title.innerText = "MIRRORRIM";
-        mainDiv.appendChild(title);
-        let buttonFrame = document.createElement("div");
-        buttonFrame.style.display = "flex";
-        buttonFrame.style.flexDirection = "column";
-        buttonFrame.style.gap = "10px";
-        let vsAiBtn = this.createMenuButton("VS AI", () => { this.showAIDifficulty(); });
-        let twoPlayersBtn = this.createMenuButton("2 Players", () => { this.showTwoPlayerColor(); });
-        let howToPlayBtn = this.createMenuButton("How to play", () => { this.showHowToPlayPage(); });
-        // Nieuwe volgorde: VS AI, 2 Players, How to play
-        buttonFrame.appendChild(vsAiBtn);
-        buttonFrame.appendChild(twoPlayersBtn);
-        buttonFrame.appendChild(howToPlayBtn);
-        mainDiv.appendChild(buttonFrame);
-        document.body.appendChild(mainDiv);
-      }
-      showAIDifficulty() {
-        this.clearScreen();
-        let mainDiv = document.createElement("div");
-        mainDiv.id = "menu";
-        let title = document.createElement("h2");
-        title.innerText = "AI difficulty";
-        mainDiv.appendChild(title);
-        let btnFrame = document.createElement("div");
-        let difficulties = [
-          { name: "Easy", depth: 1 },
-          { name: "Beginning", depth: 2 },
-          { name: "Normal", depth: 3 },
-          { name: "Hard", depth: 4 },
-          { name: "Expert", depth: 5 }
-        ];
-        difficulties.forEach(diff => {
-          let btn = this.createMenuButton(diff.name, () => { this.showAIColor(diff.depth); });
-          btnFrame.appendChild(btn);
+    <div class="header">
+        <div class="local-time" id="localTime"></div>
+        <div class="settings-menu">
+            <button class="settings-btn" id="settingsBtn">⋯</button>
+            <div class="settings-dropdown" id="settingsDropdown">
+                <div class="theme-option" data-theme="default">Standaard</div>
+                <div class="theme-option" data-theme="dark">Donker</div>
+                <div class="theme-option" data-theme="ocean">Oceaan</div>
+                <div class="theme-option" data-theme="retro">Retro</div>
+                <div class="theme-option" data-theme="high-contrast">Hoog Contrast</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" data-tab="clock">Klok</button>
+        <button class="tab" data-tab="stopwatch">Stopwatch</button>
+        <button class="tab" data-tab="timer">Timer</button>
+        <button class="tab" data-tab="agenda">Agenda</button>
+        <button class="tab" data-tab="lists">Lijsten</button>
+    </div>
+
+    <div id="clock" class="tab-content active">
+        <div class="main-clock-container">
+            <div class="analog-clock" id="mainAnalogClock">
+                <div class="clock-hand hour-hand" id="hourHand"></div>
+                <div class="clock-hand minute-hand" id="minuteHand"></div>
+                <div class="clock-hand second-hand" id="secondHand"></div>
+                <div class="clock-center"></div>
+            </div>
+            <div class="digital-time" id="mainDigitalTime"></div>
+        </div>
+
+        <div class="world-clocks-section">
+            <div class="world-clock-controls">
+                <select id="timezoneSelect">
+                    <option value="">Selecteer een tijdzone</option>
+                    <option value="America/New_York">New York (EST)</option>
+                    <option value="America/Los_Angeles">Los Angeles (PST)</option>
+                    <option value="Europe/London">Londen (GMT)</option>
+                    <option value="Europe/Paris">Parijs (CET)</option>
+                    <option value="Europe/Berlin">Berlijn (CET)</option>
+                    <option value="Asia/Tokyo">Tokyo (JST)</option>
+                    <option value="Asia/Shanghai">Shanghai (CST)</option>
+                    <option value="Asia/Dubai">Dubai (GST)</option>
+                    <option value="Australia/Sydney">Sydney (AEDT)</option>
+                    <option value="Pacific/Auckland">Auckland (NZDT)</option>
+                </select>
+                <button class="btn btn-primary" id="addWorldClock">Toevoegen</button>
+            </div>
+            <div class="world-clocks-grid" id="worldClocksGrid"></div>
+        </div>
+    </div>
+
+    <div id="stopwatch" class="tab-content">
+        <div class="stopwatch-container">
+            <div class="stopwatch-display" id="stopwatchDisplay">00:00:000</div>
+            <div class="stopwatch-controls">
+                <button class="btn btn-success" id="startStopwatch">Start</button>
+                <button class="btn btn-danger" id="stopStopwatch">Stop</button>
+                <button class="btn btn-primary" id="resetStopwatch">Reset</button>
+                <button class="btn btn-primary" id="lapStopwatch">Lap</button>
+            </div>
+            <div class="laps-container" id="lapsContainer"></div>
+        </div>
+    </div>
+
+    <div id="timer" class="tab-content">
+        <div class="timer-container">
+            <div class="timer-display" id="timerDisplay">00:00:00</div>
+            <div class="timer-inputs">
+                <input type="number" id="timerHours" placeholder="UU" min="0" max="23" value="0">
+                <input type="number" id="timerMinutes" placeholder="MM" min="0" max="59" value="0">
+                <input type="number" id="timerSeconds" placeholder="SS" min="0" max="59" value="0">
+            </div>
+            <div class="timer-controls">
+                <button class="btn btn-success" id="startTimer">Start</button>
+                <button class="btn btn-danger" id="pauseTimer">Pauze</button>
+                <button class="btn btn-primary" id="resetTimer">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="agenda" class="tab-content">
+        <div class="agenda-container">
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <div class="calendar-nav">
+                        <button id="prevMonth">&lt; Vorige</button>
+                        <button id="todayBtn">Vandaag</button>
+                    </div>
+                    <div class="calendar-title" id="currentMonthYear">Juni 2025</div>
+                    <div class="calendar-nav">
+                        <button id="nextMonth">Volgende &gt;</button>
+                    </div>
+                </div>
+                
+                <div class="calendar-weekdays">
+                    <div class="calendar-weekday">Zo</div>
+                    <div class="calendar-weekday">Ma</div>
+                    <div class="calendar-weekday">Di</div>
+                    <div class="calendar-weekday">Wo</div>
+                    <div class="calendar-weekday">Do</div>
+                    <div class="calendar-weekday">Vr</div>
+                    <div class="calendar-weekday">Za</div>
+                </div>
+                
+                <div class="calendar-days" id="calendarDays"></div>
+            </div>
+            
+            <div class="day-events-container" id="dayEventsContainer">
+                <div class="day-events-header">
+                    <div class="day-events-title" id="dayEventsTitle">Evenementen op 11 juni 2025</div>
+                    <button class="btn btn-primary" id="addEventToDay">Toevoegen</button>
+                </div>
+                <div class="day-events-list" id="dayEventsList"></div>
+            </div>
+
+            <div class="agenda-form">
+                <h3>Nieuw Agenda-item</h3>
+                <div class="form-group">
+                    <label for="agendaTitle">Titel:</label>
+                    <input type="text" id="agendaTitle" placeholder="Voer titel in">
+                </div>
+                <div class="form-group">
+                    <label for="agendaTime">Tijd:</label>
+                    <input type="datetime-local" id="agendaTime">
+                </div>
+                <button class="btn btn-primary" id="addAgendaItem">Toevoegen</button>
+            </div>
+
+            <div class="agenda-controls">
+                <input type="text" id="searchAgenda" placeholder="Zoeken in agenda...">
+            </div>
+
+            <div class="agenda-list" id="agendaList"></div>
+        </div>
+    </div>
+
+    <div id="lists" class="tab-content">
+        <div class="lists-container">
+            <div class="lists-header">
+                <div class="lists-tabs" id="listsTabs">
+                    <!-- Lijst tabs worden hier dynamisch toegevoegd -->
+                </div>
+                <button class="add-list-btn" id="addListBtn">+ Nieuwe Lijst</button>
+            </div>
+            
+            <div id="listsContent">
+                <div class="empty-list" id="emptyListsMessage">
+                    <h3>Geen lijsten beschikbaar</h3>
+                    <p>Klik op "Nieuwe Lijst" om je eerste to-do lijst te maken</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobiele navigatie knop -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn">≡</button>
+
+    <!-- Modal voor lijst bewerken -->
+    <div class="edit-list-modal" id="editListModal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Lijst Bewerken</h3>
+            <input type="text" id="listNameInput" placeholder="Lijst naam">
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="saveListBtn">Opslaan</button>
+                <button class="btn btn-danger" id="cancelListBtn">Annuleren</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Globale variabelen
+        let currentTheme = 'default';
+        let worldClocks = [];
+        let stopwatchRunning = false;
+        let stopwatchStartTime = 0;
+        let stopwatchElapsed = 0;
+        let stopwatchInterval = null;
+        let lapCounter = 1;
+        let timerRunning = false;
+        let timerStartTime = 0;
+        let timerDuration = 0;
+        let timerInterval = null;
+        let agendaItems = [];
+        let todoLists = [];
+        let currentListId = null;
+        let editingListId = null;
+        
+        // Kalender variabelen
+        let calendarYear, calendarMonth;
+        let selectedDate = null;
+        let selectedDayEvents = [];
+
+        // Initialisatie
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            initializeClocks();
+            initializeTabs();
+            initializeSettings();
+            initializeStopwatch();
+            initializeTimer();
+            initializeAgenda();
+            initializeLists();
+            updateLocalTime();
+            setInterval(updateLocalTime, 1000);
+            setInterval(updateClocks, 100);
+            
+            // Mobiele menu knop
+            document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileMenu);
         });
-        mainDiv.appendChild(btnFrame);
-        document.body.appendChild(mainDiv);
-        this.addMenuBackButton(() => { this.createMainMenu(); });
-      }
-      showAIColor(depth) {
-        this.clearScreen();
-        let mainDiv = document.createElement("div");
-        mainDiv.id = "menu";
-        let title = document.createElement("h2");
-        title.innerText = "Choose starting color";
-        mainDiv.appendChild(title);
-        let colorFrame = document.createElement("div");
-        let redBtn = this.createMenuButton("Red (You start)", () => { this.startGame(true, depth, "red"); }, "#FF5555");
-        let blueBtn = this.createMenuButton("Blue (Ai starts)", () => { this.startGame(true, depth, "blue"); }, "#5555FF");
-        redBtn.style.marginRight = "10px";
-        colorFrame.appendChild(redBtn);
-        colorFrame.appendChild(blueBtn);
-        mainDiv.appendChild(colorFrame);
-        document.body.appendChild(mainDiv);
-        this.addMenuBackButton(() => { this.showAIDifficulty(); });
-      }
-      showTwoPlayerColor() {
-        this.clearScreen();
-        let mainDiv = document.createElement("div");
-        mainDiv.id = "menu";
-        let title = document.createElement("h2");
-        title.innerText = "Choose starting color";
-        mainDiv.appendChild(title);
-        let colorFrame = document.createElement("div");
-        let redBtn = this.createMenuButton("Red", () => { this.startGame(false, 0, "red"); }, "#FF5555");
-        let blueBtn = this.createMenuButton("Blue", () => { this.startGame(false, 0, "blue"); }, "#5555FF");
-        redBtn.style.marginRight = "10px";
-        colorFrame.appendChild(redBtn);
-        colorFrame.appendChild(blueBtn);
-        mainDiv.appendChild(colorFrame);
-        document.body.appendChild(mainDiv);
-        this.addMenuBackButton(() => { this.createMainMenu(); });
-      }
-      showHowToPlayPage() {
-        this.clearScreen();
-        let mainDiv = document.createElement("div");
-        mainDiv.id = "menu";
-        let title = document.createElement("h2");
-        title.innerText = "How to play";
-        mainDiv.appendChild(title);
-        let content = document.createElement("p");
-        content.innerText = "Hier moet de how to play uitleg komen maar mijn papa moet die nog schrijven en dat heeft hij nog niet gedaan. Dat vind ik spijtig maar hij is bezig met andere dingen dus ik zal wel weer wachten.";
-        content.style.fontSize = "60px";
-        content.style.marginBottom = "40px";
-        content.style.textAlign = "justify";
-        content.style.width = "90%";
-        content.style.margin = "0 auto";
-        mainDiv.appendChild(content);
-        document.body.appendChild(mainDiv);
-        this.addMenuBackButton(() => { this.createMainMenu(); });
-      }
-      startGame(vs_ai, ai_depth, first_player) {
-        this.clearScreen();
-        let canvas = document.createElement("canvas");
-        canvas.id = "gameCanvas";
-        document.body.appendChild(canvas);
-        window.currentGUI = new MobileGUI(vs_ai, ai_depth, first_player);
-      }
-      createMenuButton(text, callback, bgColor = "#3D3D3D") {
-        let btn = document.createElement("button");
-        btn.innerText = text;
-        btn.onclick = callback;
-        btn.className = "menu-btn";
-        btn.style.backgroundColor = bgColor;
-        return btn;
-      }
-      addMenuBackButton(callback) {
-        let existing = document.getElementById("menuBackButton");
-        if (existing) existing.remove();
-        let backBtn = document.createElement("button");
-        backBtn.id = "menuBackButton";
-        backBtn.innerText = "← Back";
-        backBtn.className = "menu-back-btn";
-        backBtn.onclick = callback;
-        document.body.appendChild(backBtn);
-      }
-      static showMenu() {
-        new MobileStartMenu();
-      }
-    }
-    
-    window.onload = function() {
-      new MobileStartMenu();
-    }
-  </script>
+
+        function toggleMobileMenu() {
+            const tabs = document.querySelector('.tabs');
+            tabs.classList.toggle('show');
+            
+            if (tabs.classList.contains('show')) {
+                document.getElementById('mobileMenuBtn').textContent = '×';
+            } else {
+                document.getElementById('mobileMenuBtn').textContent = '≡';
+            }
+        }
+
+        // Settings en thema's
+        function initializeSettings() {
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsDropdown = document.getElementById('settingsDropdown');
+            const themeOptions = document.querySelectorAll('.theme-option');
+
+            settingsBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                settingsDropdown.classList.toggle('show');
+            });
+
+            document.addEventListener('click', function() {
+                settingsDropdown.classList.remove('show');
+            });
+
+            themeOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const theme = this.dataset.theme;
+                    setTheme(theme);
+                    updateActiveTheme();
+                });
+            });
+
+            updateActiveTheme();
+        }
+
+        function setTheme(theme) {
+            currentTheme = theme;
+            document.body.setAttribute('data-theme', theme === 'default' ? '' : theme);
+            saveSettings();
+        }
+
+        function updateActiveTheme() {
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.classList.toggle('active', option.dataset.theme === currentTheme);
+            });
+        }
+
+        function saveSettings() {
+            const settings = {
+                theme: currentTheme,
+                worldClocks: worldClocks,
+                agendaItems: agendaItems,
+                todoLists: todoLists,
+                currentListId: currentListId
+            };
+            
+            try {
+                localStorage.setItem('clockAppSettings', JSON.stringify(settings));
+            } catch (e) {
+                console.warn('LocalStorage niet beschikbaar, instellingen worden niet opgeslagen');
+            }
+        }
+
+        function loadSettings() {
+            try {
+                const savedSettings = localStorage.getItem('clockAppSettings');
+                if (savedSettings) {
+                    const settings = JSON.parse(savedSettings);
+                    currentTheme = settings.theme || 'default';
+                    worldClocks = settings.worldClocks || [];
+                    agendaItems = settings.agendaItems || [];
+                    todoLists = settings.todoLists || [];
+                    currentListId = settings.currentListId || null;
+                    setTheme(currentTheme);
+                    return;
+                }
+            } catch (e) {
+                console.warn('Fout bij laden instellingen:', e);
+            }
+            
+            // Fallback naar standaardwaarden
+            currentTheme = 'default';
+            worldClocks = [];
+            agendaItems = [];
+            todoLists = [];
+            currentListId = null;
+            setTheme(currentTheme);
+        }
+
+        // Tabs
+        function initializeTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const targetTab = this.dataset.tab;
+                    
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    this.classList.add('active');
+                    document.getElementById(targetTab).classList.add('active');
+                    
+                    // Herlaad kalender als agenda tab wordt geselecteerd
+                    if (targetTab === 'agenda') {
+                        initCalendar();
+                    }
+                    
+                    // Verberg mobiele menu na selectie
+                    document.querySelector('.tabs').classList.remove('show');
+                    document.getElementById('mobileMenuBtn').textContent = '≡';
+                });
+            });
+        }
+
+        // Tijd functies
+        function updateLocalTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('nl-NL', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+            document.getElementById('localTime').textContent = timeString;
+        }
+
+        function formatTime(milliseconds) {
+            const totalSeconds = Math.floor(milliseconds / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        // Stopwatch tijd formatteren met milliseconden
+        function formatStopwatchTime(milliseconds) {
+            const totalSeconds = Math.floor(milliseconds / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            const ms = milliseconds % 1000;
+            
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${ms.toString().padStart(3, '0')}`;
+        }
+
+        // Klokken
+        function initializeClocks() {
+            setupAnalogClock('mainAnalogClock');
+            loadWorldClocks();
+            
+            document.getElementById('addWorldClock').addEventListener('click', addWorldClock);
+        }
+
+        function setupAnalogClock(clockId) {
+            const clock = document.getElementById(clockId);
+            
+            // Voeg nummers toe aan de klok
+            for (let i = 1; i <= 12; i++) {
+                const number = document.createElement('div');
+                number.className = 'clock-number';
+                number.textContent = i;
+                
+                const angle = (i * 30) - 90;
+                const radius = 110;
+                const x = Math.cos(angle * Math.PI / 180) * radius;
+                const y = Math.sin(angle * Math.PI / 180) * radius;
+                
+                number.style.left = `calc(50% + ${x}px - 12px)`;
+                number.style.top = `calc(50% + ${y}px - 12px)`;
+                
+                clock.appendChild(number);
+            }
+        }
+
+        function updateClocks() {
+            const now = new Date();
+            
+            // Update hoofdklok
+            updateAnalogClock('mainAnalogClock', now);
+            document.getElementById('mainDigitalTime').textContent = now.toLocaleTimeString('nl-NL');
+            
+            // Update wereldklokken
+            worldClocks.forEach((worldClock, index) => {
+                const worldTime = new Date(now.toLocaleString("en-US", {timeZone: worldClock.timezone}));
+                if (worldClock.type === 'analog') {
+                    updateAnalogClock(`worldClock_${index}_analog`, worldTime);
+                } else {
+                    const digitalElement = document.getElementById(`worldClock_${index}_digital`);
+                    if (digitalElement) {
+                        digitalElement.textContent = worldTime.toLocaleTimeString('nl-NL');
+                    }
+                }
+            });
+        }
+
+        function updateAnalogClock(clockId, time) {
+            const hourHand = document.querySelector(`#${clockId} .hour-hand`);
+            const minuteHand = document.querySelector(`#${clockId} .minute-hand`);
+            const secondHand = document.querySelector(`#${clockId} .second-hand`);
+            
+            if (!hourHand || !minuteHand || !secondHand) return;
+            
+            const hours = time.getHours() % 12;
+            const minutes = time.getMinutes();
+            const seconds = time.getSeconds();
+            const milliseconds = time.getMilliseconds();
+            
+            const hourAngle = (hours * 30) + (minutes * 0.5);
+            const minuteAngle = minutes * 6;
+            const secondAngle = (seconds * 6) + (milliseconds * 0.006);
+            
+            hourHand.style.transform = `rotate(${hourAngle}deg)`;
+            minuteHand.style.transform = `rotate(${minuteAngle}deg)`;
+            secondHand.style.transform = `rotate(${secondAngle}deg)`;
+        }
+
+        function addWorldClock() {
+            const select = document.getElementById('timezoneSelect');
+            const timezone = select.value;
+            const cityName = select.options[select.selectedIndex].text;
+            
+            if (!timezone) return;
+            
+            const worldClock = {
+                timezone: timezone,
+                name: cityName,
+                type: 'analog'
+            };
+            
+            worldClocks.push(worldClock);
+            renderWorldClocks();
+            saveSettings();
+            select.value = '';
+        }
+
+        function renderWorldClocks() {
+            const grid = document.getElementById('worldClocksGrid');
+            grid.innerHTML = '';
+            
+            worldClocks.forEach((worldClock, index) => {
+                const clockDiv = document.createElement('div');
+                clockDiv.className = 'world-clock';
+                clockDiv.innerHTML = `
+                    <div class="world-clock-menu">
+                        <button onclick="toggleWorldClockMenu(${index})">⋯</button>
+                        <div class="world-clock-dropdown" id="worldClockMenu_${index}">
+                            <div onclick="toggleWorldClockType(${index})">
+                                ${worldClock.type === 'analog' ? 'Digitaal' : 'Analoog'}
+                            </div>
+                            <div onclick="removeWorldClock(${index})">Verwijderen</div>
+                        </div>
+                    </div>
+                    <h3>${worldClock.name}</h3>
+                    ${worldClock.type === 'analog' 
+                        ? `<div class="analog-clock" id="worldClock_${index}_analog">
+                               <div class="clock-hand hour-hand"></div>
+                               <div class="clock-hand minute-hand"></div>
+                               <div class="clock-hand second-hand"></div>
+                               <div class="clock-center"></div>
+                           </div>`
+                        : `<div class="digital-time" id="worldClock_${index}_digital">00:00:00</div>`
+                    }
+                `;
+                
+                grid.appendChild(clockDiv);
+                
+                if (worldClock.type === 'analog') {
+                    setupAnalogClock(`worldClock_${index}_analog`);
+                }
+            });
+        }
+
+        function toggleWorldClockMenu(index) {
+            const menu = document.getElementById(`worldClockMenu_${index}`);
+            const allMenus = document.querySelectorAll('.world-clock-dropdown');
+            
+            allMenus.forEach(m => {
+                if (m !== menu) m.classList.remove('show');
+            });
+            
+            menu.classList.toggle('show');
+        }
+
+        function toggleWorldClockType(index) {
+            worldClocks[index].type = worldClocks[index].type === 'analog' ? 'digital' : 'analog';
+            renderWorldClocks();
+            saveSettings();
+        }
+
+        function removeWorldClock(index) {
+            worldClocks.splice(index, 1);
+            renderWorldClocks();
+            saveSettings();
+        }
+
+        function loadWorldClocks() {
+            renderWorldClocks();
+        }
+
+        // Stopwatch functies met milliseconden
+        function initializeStopwatch() {
+            document.getElementById('startStopwatch').addEventListener('click', startStopwatch);
+            document.getElementById('stopStopwatch').addEventListener('click', stopStopwatch);
+            document.getElementById('resetStopwatch').addEventListener('click', resetStopwatch);
+            document.getElementById('lapStopwatch').addEventListener('click', addLap);
+        }
+
+        function startStopwatch() {
+            if (!stopwatchRunning) {
+                stopwatchStartTime = Date.now() - stopwatchElapsed;
+                stopwatchRunning = true;
+                stopwatchInterval = setInterval(updateStopwatch, 10);
+                
+                document.getElementById('startStopwatch').textContent = 'Doorgaan';
+                document.getElementById('startStopwatch').disabled = true;
+                document.getElementById('stopStopwatch').disabled = false;
+                document.getElementById('lapStopwatch').disabled = false;
+            }
+        }
+
+        function stopStopwatch() {
+            if (stopwatchRunning) {
+                stopwatchRunning = false;
+                clearInterval(stopwatchInterval);
+                
+                document.getElementById('startStopwatch').textContent = 'Start';
+                document.getElementById('startStopwatch').disabled = false;
+                document.getElementById('stopStopwatch').disabled = true;
+                document.getElementById('lapStopwatch').disabled = true;
+            }
+        }
+
+        function resetStopwatch() {
+            stopwatchRunning = false;
+            stopwatchElapsed = 0;
+            lapCounter = 1;
+            clearInterval(stopwatchInterval);
+            
+            document.getElementById('stopwatchDisplay').textContent = '00:00:000';
+            document.getElementById('startStopwatch').textContent = 'Start';
+            document.getElementById('startStopwatch').disabled = false;
+            document.getElementById('stopStopwatch').disabled = true;
+            document.getElementById('lapStopwatch').disabled = true;
+            document.getElementById('lapsContainer').innerHTML = '';
+        }
+
+        function updateStopwatch() {
+            if (stopwatchRunning) {
+                stopwatchElapsed = Date.now() - stopwatchStartTime;
+                document.getElementById('stopwatchDisplay').textContent = formatStopwatchTime(stopwatchElapsed);
+            }
+        }
+
+        function addLap() {
+            if (stopwatchRunning) {
+                const lapTime = formatStopwatchTime(stopwatchElapsed);
+                const lapDiv = document.createElement('div');
+                lapDiv.className = 'lap-item';
+                lapDiv.innerHTML = `
+                    <span>Lap ${lapCounter}</span>
+                    <span>${lapTime}</span>
+                `;
+                
+                document.getElementById('lapsContainer').insertBefore(lapDiv, document.getElementById('lapsContainer').firstChild);
+                lapCounter++;
+            }
+        }
+
+        // Timer functies
+        function initializeTimer() {
+            document.getElementById('startTimer').addEventListener('click', startTimer);
+            document.getElementById('pauseTimer').addEventListener('click', pauseTimer);
+            document.getElementById('resetTimer').addEventListener('click', resetTimer);
+            
+            // Input event listeners
+            ['timerHours', 'timerMinutes', 'timerSeconds'].forEach(id => {
+                document.getElementById(id).addEventListener('input', updateTimerDisplay);
+            });
+        }
+
+        function updateTimerDisplay() {
+            const hours = parseInt(document.getElementById('timerHours').value) || 0;
+            const minutes = parseInt(document.getElementById('timerMinutes').value) || 0;
+            const seconds = parseInt(document.getElementById('timerSeconds').value) || 0;
+            
+            const display = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('timerDisplay').textContent = display;
+        }
+
+        function startTimer() {
+            if (!timerRunning) {
+                const hours = parseInt(document.getElementById('timerHours').value) || 0;
+                const minutes = parseInt(document.getElementById('timerMinutes').value) || 0;
+                const seconds = parseInt(document.getElementById('timerSeconds').value) || 0;
+                
+                timerDuration = (hours * 3600 + minutes * 60 + seconds) * 1000;
+                
+                if (timerDuration > 0) {
+                    timerStartTime = Date.now();
+                    timerRunning = true;
+                    timerInterval = setInterval(updateTimer, 100);
+                    
+                    document.getElementById('startTimer').disabled = true;
+                    document.getElementById('pauseTimer').disabled = false;
+                }
+            }
+        }
+
+        function pauseTimer() {
+            if (timerRunning) {
+                timerRunning = false;
+                clearInterval(timerInterval);
+                
+                document.getElementById('startTimer').disabled = false;
+                document.getElementById('pauseTimer').disabled = true;
+            }
+        }
+
+        function resetTimer() {
+            timerRunning = false;
+            clearInterval(timerInterval);
+            
+            document.getElementById('timerHours').value = 0;
+            document.getElementById('timerMinutes').value = 0;
+            document.getElementById('timerSeconds').value = 0;
+            document.getElementById('timerDisplay').textContent = '00:00:00';
+            document.getElementById('startTimer').disabled = false;
+            document.getElementById('pauseTimer').disabled = true;
+        }
+
+        function updateTimer() {
+            if (timerRunning) {
+                const elapsed = Date.now() - timerStartTime;
+                const remaining = Math.max(0, timerDuration - elapsed);
+                
+                if (remaining === 0) {
+                    timerRunning = false;
+                    clearInterval(timerInterval);
+                    document.getElementById('startTimer').disabled = false;
+                    document.getElementById('pauseTimer').disabled = true;
+                    alert('Timer afgelopen!');
+                }
+                
+                document.getElementById('timerDisplay').textContent = formatTime(remaining);
+            }
+        }
+
+        // Agenda functies met kalender
+        function initializeAgenda() {
+            document.getElementById('addAgendaItem').addEventListener('click', addAgendaItem);
+            document.getElementById('searchAgenda').addEventListener('input', filterAgenda);
+            document.getElementById('addEventToDay').addEventListener('click', addEventForSelectedDay);
+            loadAgenda();
+            initCalendar();
+            
+            // Kalender navigatie
+            document.getElementById('prevMonth').addEventListener('click', prevMonth);
+            document.getElementById('nextMonth').addEventListener('click', nextMonth);
+            document.getElementById('todayBtn').addEventListener('click', goToToday);
+        }
+        
+        function initCalendar() {
+            const now = new Date();
+            calendarYear = now.getFullYear();
+            calendarMonth = now.getMonth();
+            selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            renderCalendar();
+        }
+        
+        function renderCalendar() {
+            const calendarDays = document.getElementById('calendarDays');
+            const currentMonthYear = document.getElementById('currentMonthYear');
+            
+            // Maand en jaar weergeven
+            const monthNames = ["Januari", "Februari", "Maart", "April", "Mei", "Juni", 
+                               "Juli", "Augustus", "September", "Oktober", "November", "December"];
+            currentMonthYear.textContent = `${monthNames[calendarMonth]} ${calendarYear}`;
+            
+            // Eerste dag van de maand
+            const firstDay = new Date(calendarYear, calendarMonth, 1);
+            // Laatste dag van de maand
+            const lastDay = new Date(calendarYear, calendarMonth + 1, 0);
+            // Eerste dag van de week (zondag)
+            const startDay = firstDay.getDay();
+            // Totaal aantal dagen in de maand
+            const daysInMonth = lastDay.getDate();
+            
+            // Leeg de kalender
+            calendarDays.innerHTML = '';
+            
+            // Voeg lege dagen toe voor de eerste week
+            for (let i = 0; i < startDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day other-month';
+                calendarDays.appendChild(emptyDay);
+            }
+            
+            // Voeg dagen van de maand toe
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            for (let i = 1; i <= daysInMonth; i++) {
+                const day = document.createElement('div');
+                day.className = 'calendar-day';
+                day.textContent = i;
+                day.dataset.day = i;
+                day.dataset.month = calendarMonth;
+                day.dataset.year = calendarYear;
+                
+                // Markeer vandaag
+                const thisDay = new Date(calendarYear, calendarMonth, i);
+                if (thisDay.getTime() === today.getTime()) {
+                    day.classList.add('today');
+                }
+                
+                // Markeer geselecteerde dag
+                if (selectedDate && 
+                    thisDay.getDate() === selectedDate.getDate() &&
+                    thisDay.getMonth() === selectedDate.getMonth() &&
+                    thisDay.getFullYear() === selectedDate.getFullYear()) {
+                    day.classList.add('selected');
+                }
+                
+                // Controleer of er evenementen zijn op deze dag
+                const hasEvents = agendaItems.some(item => {
+                    const eventDate = new Date(item.time);
+                    return eventDate.getDate() === i && 
+                           eventDate.getMonth() === calendarMonth && 
+                           eventDate.getFullYear() === calendarYear;
+                });
+                
+                if (hasEvents) {
+                    day.classList.add('event-day');
+                }
+                
+                day.addEventListener('click', function() {
+                    selectDay(this);
+                });
+                
+                calendarDays.appendChild(day);
+            }
+            
+            // Toon evenementen voor de geselecteerde dag
+            if (selectedDate) {
+                showDayEvents(selectedDate);
+            }
+        }
+        
+        function selectDay(dayElement) {
+            // Verwijder geselecteerde klasse van alle dagen
+            document.querySelectorAll('.calendar-day').forEach(day => {
+                day.classList.remove('selected');
+            });
+            
+            // Voeg geselecteerde klasse toe aan geklikte dag
+            dayElement.classList.add('selected');
+            
+            // Haal datum op
+            const day = parseInt(dayElement.dataset.day);
+            const month = parseInt(dayElement.dataset.month);
+            const year = parseInt(dayElement.dataset.year);
+            
+            selectedDate = new Date(year, month, day);
+            
+            // Toon evenementen voor deze dag
+            showDayEvents(selectedDate);
+        }
+        
+        function showDayEvents(date) {
+            const dayEventsContainer = document.getElementById('dayEventsContainer');
+            const dayEventsTitle = document.getElementById('dayEventsTitle');
+            const dayEventsList = document.getElementById('dayEventsList');
+            
+            // Formatteer datum
+            const dayNames = ["Zondag", "Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag"];
+            const monthNames = ["Januari", "Februari", "Maart", "April", "Mei", "Juni", 
+                               "Juli", "Augustus", "September", "Oktober", "November", "December"];
+            
+            const dayName = dayNames[date.getDay()];
+            const dayNumber = date.getDate();
+            const monthName = monthNames[date.getMonth()];
+            const year = date.getFullYear();
+            
+            dayEventsTitle.textContent = `${dayName} ${dayNumber} ${monthName} ${year}`;
+            
+            // Zoek evenementen voor deze dag
+            selectedDayEvents = agendaItems.filter(item => {
+                const eventDate = new Date(item.time);
+                return eventDate.getDate() === dayNumber && 
+                       eventDate.getMonth() === date.getMonth() && 
+                       eventDate.getFullYear() === year;
+            });
+            
+            // Toon evenementen
+            dayEventsList.innerHTML = '';
+            
+            if (selectedDayEvents.length === 0) {
+                dayEventsList.innerHTML = '<p>Geen evenementen voor deze dag</p>';
+            } else {
+                selectedDayEvents.forEach(event => {
+                    const eventDate = new Date(event.time);
+                    const timeString = eventDate.toLocaleTimeString('nl-NL', {
+                        hour: '2-digit', 
+                        minute: '2-digit'
+                    });
+                    
+                    const eventDiv = document.createElement('div');
+                    eventDiv.className = 'agenda-item';
+                    eventDiv.innerHTML = `
+                        <div class="agenda-item-info">
+                            <h4>${event.title}</h4>
+                            <p>${timeString}</p>
+                        </div>
+                        <div class="agenda-item-actions">
+                            <button class="btn btn-primary btn-small" onclick="editAgendaItem(${event.id})">Bewerken</button>
+                            <button class="btn btn-danger btn-small" onclick="removeAgendaItem(${event.id})">Verwijderen</button>
+                        </div>
+                    `;
+                    
+                    dayEventsList.appendChild(eventDiv);
+                });
+            }
+            
+            // Toon de container
+            dayEventsContainer.classList.add('active');
+            
+            // Stel het formulier in op de geselecteerde dag
+            setAgendaFormDate(date);
+        }
+        
+        function setAgendaFormDate(date) {
+            // Stel de tijd in op 12:00 's middags als standaard
+            date.setHours(12, 0, 0, 0);
+            
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            
+            document.getElementById('agendaTime').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+        
+        function addEventForSelectedDay() {
+            if (!selectedDate) return;
+            
+            const title = document.getElementById('agendaTitle').value.trim();
+            if (!title) {
+                alert("Voer een titel in voor het evenement");
+                return;
+            }
+            
+            addAgendaItem();
+        }
+        
+        function prevMonth() {
+            calendarMonth--;
+            if (calendarMonth < 0) {
+                calendarMonth = 11;
+                calendarYear--;
+            }
+            renderCalendar();
+        }
+        
+        function nextMonth() {
+            calendarMonth++;
+            if (calendarMonth > 11) {
+                calendarMonth = 0;
+                calendarYear++;
+            }
+            renderCalendar();
+        }
+        
+        function goToToday() {
+            const now = new Date();
+            calendarYear = now.getFullYear();
+            calendarMonth = now.getMonth();
+            selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            renderCalendar();
+        }
+
+        function addAgendaItem() {
+            const title = document.getElementById('agendaTitle').value.trim();
+            const time = document.getElementById('agendaTime').value;
+            
+            if (!title || !time) return;
+            
+            const agendaItem = {
+                id: Date.now(),
+                title: title,
+                time: time,
+                created: new Date().toISOString()
+            };
+            
+            agendaItems.push(agendaItem);
+            agendaItems.sort((a, b) => new Date(a.time) - new Date(b.time));
+            
+            document.getElementById('agendaTitle').value = '';
+            
+            renderAgenda();
+            saveSettings();
+            
+            // Update kalender als we in de agenda zijn
+            if (document.getElementById('agenda').classList.contains('active')) {
+                renderCalendar();
+                if (selectedDate) {
+                    showDayEvents(selectedDate);
+                }
+            }
+        }
+
+        function renderAgenda() {
+            const agendaList = document.getElementById('agendaList');
+            const searchTerm = document.getElementById('searchAgenda').value.toLowerCase();
+            
+            const filteredItems = agendaItems.filter(item => 
+                item.title.toLowerCase().includes(searchTerm) ||
+                new Date(item.time).toLocaleString('nl-NL').includes(searchTerm)
+            );
+            
+            agendaList.innerHTML = '';
+            
+            filteredItems.forEach(item => {
+                const eventDate = new Date(item.time);
+                const dateString = eventDate.toLocaleDateString('nl-NL');
+                const timeString = eventDate.toLocaleTimeString('nl-NL', {
+                    hour: '2-digit', 
+                    minute: '2-digit'
+                });
+                
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'agenda-item';
+                itemDiv.innerHTML = `
+                    <div class="agenda-item-info">
+                        <h4>${item.title}</h4>
+                        <p>${dateString} om ${timeString}</p>
+                    </div>
+                    <div class="agenda-item-actions">
+                        <button class="btn btn-primary btn-small" onclick="editAgendaItem(${item.id})">Bewerken</button>
+                        <button class="btn btn-danger btn-small" onclick="removeAgendaItem(${item.id})">Verwijderen</button>
+                    </div>
+                `;
+                
+                agendaList.appendChild(itemDiv);
+            });
+        }
+
+        function editAgendaItem(id) {
+            const item = agendaItems.find(item => item.id === id);
+            if (!item) return;
+            
+            document.getElementById('agendaTitle').value = item.title;
+            document.getElementById('agendaTime').value = item.time;
+            
+            removeAgendaItem(id);
+        }
+
+        function removeAgendaItem(id) {
+            agendaItems = agendaItems.filter(item => item.id !== id);
+            renderAgenda();
+            saveSettings();
+            
+            // Update kalender als we in de agenda zijn
+            if (document.getElementById('agenda').classList.contains('active')) {
+                renderCalendar();
+                if (selectedDate) {
+                    showDayEvents(selectedDate);
+                }
+            }
+        }
+
+        function filterAgenda() {
+            renderAgenda();
+        }
+
+        function loadAgenda() {
+            renderAgenda();
+        }
+
+        // Lijsten functies
+        function initializeLists() {
+            document.getElementById('addListBtn').addEventListener('click', showAddListModal);
+            document.getElementById('saveListBtn').addEventListener('click', saveList);
+            document.getElementById('cancelListBtn').addEventListener('click', hideListModal);
+            
+            // Sluit modal bij klikken buiten
+            document.getElementById('editListModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    hideListModal();
+                }
+            });
+            
+            renderLists();
+        }
+
+        function showAddListModal() {
+            editingListId = null;
+            document.getElementById('modalTitle').textContent = 'Nieuwe Lijst';
+            document.getElementById('listNameInput').value = '';
+            document.getElementById('editListModal').classList.add('show');
+            document.getElementById('listNameInput').focus();
+        }
+
+        function showEditListModal(listId) {
+            const list = todoLists.find(l => l.id === listId);
+            if (!list) return;
+            
+            editingListId = listId;
+            document.getElementById('modalTitle').textContent = 'Lijst Bewerken';
+            document.getElementById('listNameInput').value = list.name;
+            document.getElementById('editListModal').classList.add('show');
+            document.getElementById('listNameInput').focus();
+        }
+
+        function hideListModal() {
+            document.getElementById('editListModal').classList.remove('show');
+            editingListId = null;
+        }
+
+        function saveList() {
+            const name = document.getElementById('listNameInput').value.trim();
+            if (!name) return;
+            
+            if (editingListId) {
+                // Bewerk bestaande lijst
+                const list = todoLists.find(l => l.id === editingListId);
+                if (list) {
+                    list.name = name;
+                }
+            } else {
+                // Nieuwe lijst
+                const newList = {
+                    id: Date.now(),
+                    name: name,
+                    items: [],
+                    created: new Date().toISOString()
+                };
+                todoLists.push(newList);
+                currentListId = newList.id;
+            }
+            
+            renderLists();
+            saveSettings();
+            hideListModal();
+        }
+
+        function renderLists() {
+            const tabsContainer = document.getElementById('listsTabs');
+            const contentContainer = document.getElementById('listsContent');
+            
+            if (todoLists.length === 0) {
+                tabsContainer.innerHTML = '';
+                contentContainer.innerHTML = `
+                    <div class="empty-list">
+                        <h3>Geen lijsten beschikbaar</h3>
+                        <p>Klik op "Nieuwe Lijst" om je eerste to-do lijst te maken</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Render lijst tabs
+            tabsContainer.innerHTML = '';
+            todoLists.forEach(list => {
+                const tabDiv = document.createElement('div');
+                tabDiv.className = `list-tab ${list.id === currentListId ? 'active' : ''}`;
+                tabDiv.innerHTML = `
+                    <span onclick="selectList(${list.id})">${list.name}</span>
+                    <span class="list-tab-menu" onclick="toggleListMenu(event, ${list.id})">⋯</span>
+                    <div class="list-tab-dropdown" id="listMenu_${list.id}">
+                        <div onclick="showEditListModal(${list.id})">Hernoemen</div>
+                        <div onclick="deleteList(${list.id})">Verwijderen</div>
+                    </div>
+                `;
+                
+                tabsContainer.appendChild(tabDiv);
+            });
+            
+            // Render actieve lijst content
+            renderCurrentList();
+        }
+
+        function selectList(listId) {
+            currentListId = listId;
+            renderLists();
+            saveSettings();
+        }
+
+        function toggleListMenu(event, listId) {
+            event.stopPropagation();
+            const menu = document.getElementById(`listMenu_${listId}`);
+            const allMenus = document.querySelectorAll('.list-tab-dropdown');
+            
+            allMenus.forEach(m => {
+                if (m !== menu) m.classList.remove('show');
+            });
+            
+            menu.classList.toggle('show');
+        }
+
+        function deleteList(listId) {
+            if (confirm('Weet je zeker dat je deze lijst wilt verwijderen?')) {
+                todoLists = todoLists.filter(l => l.id !== listId);
+                
+                if (currentListId === listId) {
+                    currentListId = todoLists.length > 0 ? todoLists[0].id : null;
+                }
+                
+                renderLists();
+                saveSettings();
+            }
+        }
+
+        function renderCurrentList() {
+            const contentContainer = document.getElementById('listsContent');
+            
+            if (!currentListId) {
+                contentContainer.innerHTML = `
+                    <div class="empty-list">
+                        <h3>Selecteer een lijst</h3>
+                        <p>Kies een lijst uit de tabs hierboven</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const currentList = todoLists.find(l => l.id === currentListId);
+            if (!currentList) return;
+            
+            contentContainer.innerHTML = `
+                <div class="list-content">
+                    <div class="list-add-item">
+                        <input type="text" id="newItemInput" placeholder="Nieuw item toevoegen..." onkeypress="handleNewItemKeypress(event)">
+                        <button class="btn btn-primary" onclick="addListItem()">Toevoegen</button>
+                    </div>
+                    <div class="list-items" id="listItems">
+                        ${currentList.items.length === 0 ? 
+                            '<div class="empty-list"><p>Nog geen items in deze lijst</p></div>' : 
+                            currentList.items.map(item => renderListItem(item)).join('')
+                        }
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderListItem(item) {
+            return `
+                <div class="list-item ${item.completed ? 'completed' : ''}">
+                    <input type="checkbox" class="list-item-checkbox" 
+                           ${item.completed ? 'checked' : ''} 
+                           onchange="toggleItemComplete(${item.id})">
+                    <input type="text" class="list-item-text" 
+                           value="${item.text}" 
+                           onblur="updateItemText(${item.id}, this.value)"
+                           onkeypress="handleItemKeypress(event, ${item.id})">
+                    <div class="list-item-actions">
+                        <button class="list-item-btn btn-danger" onclick="deleteListItem(${item.id})">×</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleNewItemKeypress(event) {
+            if (event.key === 'Enter') {
+                addListItem();
+            }
+        }
+
+        function handleItemKeypress(event, itemId) {
+            if (event.key === 'Enter') {
+                event.target.blur();
+            }
+        }
+
+        function addListItem() {
+            const input = document.getElementById('newItemInput');
+            const text = input.value.trim();
+            
+            if (!text || !currentListId) return;
+            
+            const currentList = todoLists.find(l => l.id === currentListId);
+            if (!currentList) return;
+            
+            const newItem = {
+                id: Date.now(),
+                text: text,
+                completed: false,
+                created: new Date().toISOString()
+            };
+            
+            currentList.items.push(newItem);
+            input.value = '';
+            
+            renderCurrentList();
+            saveSettings();
+        }
+
+        function toggleItemComplete(itemId) {
+            const currentList = todoLists.find(l => l.id === currentListId);
+            if (!currentList) return;
+            
+            const item = currentList.items.find(i => i.id === itemId);
+            if (item) {
+                item.completed = !item.completed;
+                renderCurrentList();
+                saveSettings();
+            }
+        }
+
+        function updateItemText(itemId, newText) {
+            const currentList = todoLists.find(l => l.id === currentListId);
+            if (!currentList) return;
+            
+            const item = currentList.items.find(i => i.id === itemId);
+            if (item && newText.trim()) {
+                item.text = newText.trim();
+                saveSettings();
+            } else if (item && !newText.trim()) {
+                // Verwijder item als tekst leeg is
+                deleteListItem(itemId);
+            }
+        }
+
+        function deleteListItem(itemId) {
+            const currentList = todoLists.find(l => l.id === currentListId);
+            if (!currentList) return;
+            
+            currentList.items = currentList.items.filter(i => i.id !== itemId);
+            renderCurrentList();
+            saveSettings();
+        }
+
+        // Event listeners voor klikken buiten menu's
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.world-clock-menu')) {
+                document.querySelectorAll('.world-clock-dropdown').forEach(menu => {
+                    menu.classList.remove('show');
+                });
+            }
+            
+            if (!e.target.closest('.list-tab')) {
+                document.querySelectorAll('.list-tab-dropdown').forEach(menu => {
+                    menu.classList.remove('show');
+                });
+            }
+        });
+    </script>
 </body>
 </html>
